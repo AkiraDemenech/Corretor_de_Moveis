@@ -43,6 +43,14 @@ void cidade_insort_quadra (void * lista, void * quadra) {
 //	*((float*)li_get_chave(list_get_atual(lista))) = quadra_get_y(quadra);	
 }
 
+void arv_del_quadras (void * avl) {
+	while(avl != NULL) {
+		list_del_all(arv_get_valor(avl));
+		arv_del_quadras(arv_get_dir(avl));
+		avl = arv_get_esq(avl);
+	}	
+}
+
 void * arv_get_quadras_em (void * avl_in, void * list_out, float xi, float yi, float xf, float yf) {
 	void * q;
 	int c;
@@ -178,7 +186,7 @@ void cidade_pm (void * cid, char * pm) {
 				copy(sobrenome,pessoa_sobrenome(m));
 				copy(nome,pessoa_nome(m));
 				cidade_set_pessoa(cid,m);
-				printf("%c",pessoa_gen(m));
+				printf("%c",pessoa_gen(m)); //*/
 				p++;
 				break;
 			
@@ -193,7 +201,7 @@ void cidade_pm (void * cid, char * pm) {
 				printf("%c",moradia_get_face(m));
 				copy(nome, moradia_get_compl(m));
 				copy(cep,moradia_get_cep(m));
-				copy(cpf,moradia_get_cpf(m));				
+				copy(cpf,moradia_get_cpf(m));	//*/			
 				c++;
 		}
 	}
@@ -332,13 +340,19 @@ void cidade_set_moradias (void * cid, int n) {
 	for(c = hash_get_chaves_len(cpf) - 1; c >= 0; c--)
 		cidade_set_moradia(cid,hash_get(cpf,hash_get_chave(cpf,c)));	
 	hash_del_all(cep);
-	hash_del_all(cep);
+	hash_del_all(cpf);
 }
 
 void cidade_set_moradia (void * cid, void * moradia) {
 	if(cid != NULL && moradia != NULL) {
-		hash_set(cidade_get_moradias_cpf(cid),moradia_get_cpf(moradia),moradia);
-		hash_set(cidade_get_moradias_cep(cid),moradia_get_cep(moradia),moradia);
+		hash_set(cidade_get_moradias_cpf(cid), moradia_get_cpf(moradia), moradia);
+		void* q = hash_get(cidade_get_moradias_cep(cid), moradia_get_cep(moradia));
+		if(q == NULL) {
+			q = new_list(0);
+			hash_set(cidade_get_moradias_cep(cid),moradia_get_cep(moradia),q);			
+		}
+		list_add(q,moradia);
+		li_set_chave(list_get_atual(q),moradia_get_cpf(moradia));		
 	}
 }
 
@@ -352,6 +366,39 @@ void * cidade_get_moradias_cpf (void * cid) {
 	if(cid == NULL)
 		return NULL;
 	return ((cidade*)cid)->moradias_cpf;	
+}
+
+void cidade_del_moradia_cpf (void * cid, char * cpf) {
+	void * m = hash_get(cidade_get_moradias_cpf(cid),cpf);
+	if(m != NULL) {
+		hash_del(cidade_get_moradias_cpf(cid), cpf);
+		void * l = hash_get(cidade_get_moradias_cep(cid),moradia_get_cep(m));
+		int c;
+		for(c = 0; c < list_get_len(l); c++) 
+			if(compare(li_get_chave(list_get(l,c)),moradia_get_cpf(m)) == 0 || m == li_get_valor(list_get(l,c))) {
+				list_del(l,c);
+				c--;
+			}						
+	}
+}
+
+void cidade_del_moradia_cep (void * cid, char * cep) {
+	void * l = hash_get(cidade_get_moradias_cep(cid),cep);
+	if(l != NULL) {
+		hash_del(cidade_get_moradias_cep(cid), cep);
+		while(list_get_len(l) > 0) {
+			hash_del(cidade_get_moradias_cpf(cid), li_get_chave(list_get_atual(l)));
+			list_del(l,list_get_index(l));			
+		}						
+	}
+}
+
+void cidade_del_moradias (void * cid) {
+	int c;
+	for(c = 0; c < hash_get_chaves_len(cidade_get_moradias_cep(cid)); c++) 
+		list_del_all(hash_get(cidade_get_moradias_cep(cid), hash_get_chave(cidade_get_moradias_cep(cid), c)));	
+	hash_del_all(cidade_get_moradias_cep(cid));
+	hash_del_all(cidade_get_moradias_cpf(cid));
 }
 
 void * cidade_get_pessoa (void * cid, char * cpf) {
@@ -395,6 +442,10 @@ void cidade_del_pessoas (void * cid) {
 
 void cidade_del_all (void * cid) {
 	cidade_del_pessoas(cid);
+	cidade_del_moradias(cid);
+	arv_del_quadras(cidade_get_quadras_avl(cid));
+	arv_del_all(cidade_get_quadras_avl(cid));
+	hash_del_all(cidade_get_quadras_hash(cid));
 	if(cid != NULL) 				
 		free(cid);
 	

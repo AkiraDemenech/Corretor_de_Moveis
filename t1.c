@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include<stdlib.h>
 #include"cidade.h"
+#include"qry.h"
 #include"arq.h"
 
 
@@ -76,33 +77,40 @@ int main (int argc, char *argv[]) {
 	printf("BED + GEO:\t%s\n",geo_completo);
 	printf("BED + QRY:\t%s\n",qry_completo);
 
-	char * arq = arq_nome_concat(1,'-','.',arq_nome(geo),arq_nome(qry));
+	char * arq = arq_nome_completo(bsd,arq_nome_concat(1,'-','.',arq_nome(geo),arq_nome(qry)));
 //	arq_nome_completo(bsd,arq_nome_concat(0,'.','.',arq,"EXT"));
 	
-	printf("<ARQ>:\t%s\n",arq);
+	printf("BSD/<ARQ>:\t%s\n\n",arq);
+	
 	
 
 	
-	// ler GEO e PM
+	// ler GEO 
 	printf("Lendo %s:\n",geo_completo);
 	void * cidade = cidade_geo(geo_completo);
 	printf("%s lida com sucesso.\n",cidade_get_nome(cidade));
+
+	// escrever SVG inicial
+
+	printf("\n");
 
 	if(qry_completo != NULL)
 	{
 		if(pm_completo != NULL)
 		{
 			printf("Lendo %s:\n",pm_completo);
-			cidade_pm(cidade,pm_completo);
-			printf("Pessoas e Moradias lidas com sucesso.\n");
+			cidade_pm(cidade,pm_completo); // ler PM
+			printf("Pessoas e Moradias lidas com sucesso.\n");			
 		}
+		printf("\n");
 		
 		printf("Iniciando leitura de %s\n",qry_completo);
 
+		cidade_qry(cidade,qry_completo,arq_nome_concat(0,'.','.',arq,"svg"),arq_nome_concat(0,'.','.',arq,"txt"));// rodar QRY
 		printf("Finalizadas as consultas.\n");
-	}
 
-	// rodar QRY
+	}	
+	printf("\n");
 
 	
 	printf("Iniciando limpeza");

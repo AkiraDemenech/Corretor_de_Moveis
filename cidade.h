@@ -19,7 +19,6 @@ void *cidade_get_pessoa (void * cid, char * cpf);
 void cidade_set_pessoas (void * cid, int n);
 void cidade_set_pessoa (void * cid, void * pessoa);
 void cidade_del_pessoa (void * cid, char * cpf);
-void cidade_del_pessoas (void* cid);
 
 void * cidade_get_quadras_em (void * cid, float x, float y, float w, float h);
 
@@ -41,6 +40,7 @@ void cidade_set_moradia (void * cid, void * moradia);
 void cidade_set_moradias (void *cid, int n);
 void * cidade_get_moradias_cpf (void * cid);
 void * cidade_get_moradias_cep (void * cid);
-
+void cidade_del_moradia_cep (void * cid, char * cep);
+void cidade_del_moradia_cpf (void * cid, char * cpf);
 
 #endif

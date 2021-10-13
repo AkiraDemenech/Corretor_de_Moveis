@@ -60,13 +60,11 @@ typedef struct mor {
 
 void * new_moradia (int num, char face, char * compl, char * cep, char * cpf) {
 	moradia * m = (moradia *) malloc(sizeof(moradia));
-	if(face > 'Z')
-		face -= 'a' - 'A';
-	m->cpf = cpf;
-	m->cep = cep;
-	m->compl = compl;
-	m->face = face;
-	m->num = num;
+	moradia_set_cpf(m,cpf);
+	moradia_set_cpf(m,cep);
+	moradia_set_compl(m,compl);
+	moradia_set_face(m,face);
+	moradia_set_num(m,num);
 	return m;
 }
 
@@ -109,6 +107,8 @@ void moradia_set_compl (void * m, char * complemento) {
 		((moradia*)m)->compl = complemento;
 }
 void moradia_set_face (void * m, char face) {
+	if(face > 'Z')
+		face -= 'a' - 'A';
 	if(m != NULL)
 		((moradia*)m)->face = face; 
 }
