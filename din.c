@@ -96,7 +96,7 @@ int list_set (void * list, int index, void * valor) {
 		index = 0;	
 	list_set_index(list,index);
 	lista * l = (lista *) list;			
-	item * prev;
+	item * prev = NULL;
 	item * prox = NULL;			
 	item * novo = (item *) malloc(sizeof(item));
 	if(l->atual != NULL) {
@@ -111,6 +111,7 @@ int list_set (void * list, int index, void * valor) {
 		
 	if(prox != NULL) prox->conecta[0] = novo;						
 	if(prev != NULL) prev->conecta[LIST_CON-1] = novo;
+	novo->chave = NULL;
 	l->atual = novo;	
 	l->atual->valor = valor;
 	l->atual->conecta[LIST_CON - 1] = prox;

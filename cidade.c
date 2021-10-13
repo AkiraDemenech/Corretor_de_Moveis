@@ -174,6 +174,7 @@ void cidade_pm (void * cid, char * pm) {
 	while(!feof(pes)) {
 		clean(com, COM_TAM);
 		fscanf(pes,"%s",com);
+		printf("\n%d %d\t%s",p,c,com);
 		switch (com[0]) {
 			case 'p':				
 				clean(cpf,CPF_TAM);
@@ -185,23 +186,24 @@ void cidade_pm (void * cid, char * pm) {
 				m = new_pessoa(sexo[0],cpf,datanas,malloc(sizeof(char)*(1+comprimento(nome))),malloc(sizeof(char)*(1+comprimento(sobrenome))));				
 				copy(sobrenome,pessoa_sobrenome(m));
 				copy(nome,pessoa_nome(m));
-				cidade_set_pessoa(cid,m);
+				printf("%s %s %s %s ",pessoa_sobrenome(m),pessoa_nome(m),pessoa_datanas(m),pessoa_cpf(m));
+				cidade_set_pessoa(cid,m);				
 				printf("%c",pessoa_gen(m)); //*/
 				p++;
 				break;
 			
 			case 'm':
 				clean(cpf, CPF_TAM);
-				clean(cep, CPF_TAM);
+				clean(cep, CEP_TAM);
 				clean(sexo,COM_TAM);
 				clean(nome,NOME_TAM);
 				fscanf(pes,"%s %s %s %d %s",cpf,cep,sexo,&n,nome);
-				m = new_moradia(n,sexo[0],malloc(sizeof(char)*(1+comprimento(nome))),malloc(sizeof(char)*(1+comprimento(cep))),malloc(sizeof(char)*(1+comprimento(cpf))));
-				cidade_set_moradia(cid,m);
+				m = new_moradia(n,sexo[0],malloc(sizeof(char)*(1+comprimento(nome))),malloc(sizeof(char)*(1+comprimento(cep))),malloc(sizeof(char)*(1+comprimento(cpf))));				
 				printf("%c",moradia_get_face(m));
 				copy(nome, moradia_get_compl(m));
 				copy(cep,moradia_get_cep(m));
-				copy(cpf,moradia_get_cpf(m));	//*/			
+				copy(cpf,moradia_get_cpf(m));
+				cidade_set_moradia(cid,m);	//*/			
 				c++;
 		}
 	}
@@ -345,7 +347,9 @@ void cidade_set_moradias (void * cid, int n) {
 
 void cidade_set_moradia (void * cid, void * moradia) {
 	if(cid != NULL && moradia != NULL) {
-		hash_set(cidade_get_moradias_cpf(cid), moradia_get_cpf(moradia), moradia);
+		if(moradia_get_cpf(moradia) == NULL)
+			printf(" Moradia em %s/%c/%d/%s sem CPF registrado\n",moradia_get_cep(moradia),moradia_get_face(moradia),moradia_get_num(moradia),moradia_get_compl(moradia));
+		else hash_set(cidade_get_moradias_cpf(cid), moradia_get_cpf(moradia), moradia);
 		void* q = hash_get(cidade_get_moradias_cep(cid), moradia_get_cep(moradia));
 		if(q == NULL) {
 			q = new_list(0);

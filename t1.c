@@ -83,7 +83,6 @@ int main (int argc, char *argv[]) {
 	printf("BSD/<ARQ>:\t%s\n\n",arq);
 	
 	
-
 	
 	// ler GEO 
 	printf("Lendo %s:\n",geo_completo);
@@ -105,10 +104,8 @@ int main (int argc, char *argv[]) {
 		printf("\n");
 		
 		printf("Iniciando leitura de %s\n",qry_completo);
-
 		cidade_qry(cidade,qry_completo,arq_nome_concat(0,'.','.',arq,"svg"),arq_nome_concat(0,'.','.',arq,"txt"));// rodar QRY
 		printf("Finalizadas as consultas.\n");
-
 	}	
 	printf("\n");
 
@@ -138,6 +135,6 @@ int main (int argc, char *argv[]) {
 	
 
 	// */
-	printf("\nLimpeza concluída com sucesso!");
+	printf("\nLimpeza concluída com sucesso!\n\n ");
 	return 0;
 }
