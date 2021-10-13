@@ -51,14 +51,15 @@ void arv_del_quadras (void * avl) {
 	}	
 }
 
-void * arv_get_quadras_em (void * avl_in, void * list_out, float xi, float yi, float xf, float yf) {
+int arv_get_quadras_em (void * avl_in, void * list_out, float xi, float yi, float xf, float yf) {
 	void * q;
-	int c;
+	int c, busca = 0;	
 	while(avl_in != NULL && arv_get_max(avl_in) >= xi && arv_get_min(avl_in) <= xf) {				
+		busca++;	
 		if(arv_get_chave(avl_in) <= xf) {
 			if(arv_get_chave(avl_in) >= xi) {
-				if(list_out == NULL)
-					list_out = new_list(0);
+			//	if(list_out == NULL)
+			//		list_out = new_list(0);
 				c = list_get_len(arv_get_valor(avl_in));
 				while(c > 0) {
 					c--;
@@ -67,16 +68,18 @@ void * arv_get_quadras_em (void * avl_in, void * list_out, float xi, float yi, f
 						list_add(list_out, q);
 				}			
 				if(arv_get_chave(avl_in) > xi)
-					arv_get_quadras_em(arv_get_esq(avl_in), list_out, xi, yi, xf, yf);
-			}	
-			if(arv_get_chave(avl_in) < xf)
+					busca += arv_get_quadras_em(arv_get_esq(avl_in), list_out, xi, yi, xf, yf);
+			}				
+			if(arv_get_chave(avl_in) < xf) {
 				avl_in = arv_get_dir(avl_in);
 			//	arv_get_quadras_em(arv_get_dir(avl_in), list_out, xi, yi, xf, yf);	
-			else break;
-		}
+				continue;
+			}
+		}  
+		break;
 	}
 	
-	return list_out;
+	return busca;
 }
 
 void * cidade_geo (char * geo) {
@@ -287,18 +290,22 @@ void * cidade_get_moradias_em (void * cid, float x, float y, float w, float h) {
 	void * q = cidade_get_quadras_em(cid, x, y, w, h);
 	void * m = new_list(0);
 	void * t;
-	int c, b;
+	int c, b;	
 	for(c = 0; c < list_get_len(q); c++) {		
 		t = hash_get(cidade_get_moradias_cep(cid), quadra_get_cep(li_get_valor(list_get(q, c))));
 		for(b = 0; b < list_get_len(t); b++) 
 			list_insert(m,li_get_valor(list_get(t,b)));
 	}
+	printf("%d quadras inteiramente na área.\n",list_get_len(q));
 	list_del_all(q);
 	return m;
 }
 
 void * cidade_get_quadras_em (void * cid, float x, float y, float w, float h) {	
-	return arv_get_quadras_em(cidade_get_quadras_avl(cid),NULL,x,y,x+w,y+h);
+	printf("Área de busca:\t%f\n",h*w);
+	void * quadras = new_list(0);
+	printf("%d fileiras de quadras plausíveis.\n",arv_get_quadras_em(cidade_get_quadras_avl(cid),quadras,x,y,x+w,y+h));
+	return quadras;
 }
 
 void * cidade_get_quadras_hash (void * cid) {

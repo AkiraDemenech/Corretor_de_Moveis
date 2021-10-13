@@ -5,6 +5,9 @@
 #define LESTE 'L'
 #define OESTE 'O'
 
+void * moradia_get_loc (void * m);
+void moradia_set_loc (void * m, void * l); 
+
 void moradia_set_num (void * m, int numero);
 int moradia_get_num (void * m);
 

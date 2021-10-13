@@ -56,21 +56,34 @@ typedef struct mor {
 	char * compl;
 	char face;
 	int num;
+	void * loc;
 } moradia;
 
 void * new_moradia (int num, char face, char * compl, char * cep, char * cpf) {	
 	moradia * m = (moradia *) malloc(sizeof(moradia));
-	moradia_set_cpf(m,cpf);
-	moradia_set_cep(m,cep);
+	moradia_set_loc(m,NULL);
+	moradia_set_cpf(m, cpf);
+	moradia_set_cep(m, cep);
 	moradia_set_compl(m,compl);
 	moradia_set_face(m,face);
-	moradia_set_num(m,num);
+	moradia_set_num(m, num);
 /*	m->num = num;//
 	m->face = face;//
 	m->compl = compl;//
 	m->cpf = cpf;//
 	m->cep = cep;//*/
 	return m;
+}
+
+void moradia_set_loc (void * m, void * l) {
+	if(m != NULL)
+		((moradia*)m)->loc = l;
+}
+
+void * moradia_get_loc (void * m) {
+	if(m != NULL)
+		return ((moradia*)m)->loc;
+	return NULL;
 }
 
 char * moradia_get_cpf (void * m) {
