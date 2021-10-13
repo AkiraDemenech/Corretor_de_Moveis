@@ -10,7 +10,7 @@ char moradia_get_face (void * m);
 void moradia_set_compl (void * m, char * complemento);
 char * moradia_get_compl (void * m);
 
-void moradia_set_cep (void * m, char * cpf);
+void moradia_set_cep (void * m, char * cep);
 char * moradia_get_cep (void * m);
 
 char * moradia_get_cpf (void * m);
