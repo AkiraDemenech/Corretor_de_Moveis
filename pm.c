@@ -47,7 +47,7 @@ char * pessoa_datanas (void * pm) {
 char pessoa_gen (void * pm) {
 	if(pm != NULL)
 		return ((pessoa*)pm)->gen;
-	return '~';	
+	return IDK;	
 }
 
 typedef struct mor {
@@ -90,7 +90,7 @@ char * moradia_get_compl (void * m) {
 }
 char moradia_get_face (void * m) {
 	if(m == NULL)
-		return '~';
+		return IDK;
 	return ((moradia*)m)->face;	
 }
 int moradia_get_num (void * m) {

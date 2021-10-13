@@ -20,6 +20,7 @@ void cidade_set_pessoas (void * cid, int n);
 void cidade_set_pessoa (void * cid, void * pessoa);
 void cidade_del_pessoa (void * cid, char * cpf);
 
+void * cidade_get_moradias_em (void *cid, float x, float y, float w, float h);
 void * cidade_get_quadras_em (void * cid, float x, float y, float w, float h);
 
 void * cidade_get_quadras_avl (void * cid);

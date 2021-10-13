@@ -1,5 +1,9 @@
 #ifndef __MORADIAS__H
 #define __MORADIAS__H 
+#define NORTE 'N'
+#define SUL 'S'
+#define LESTE 'L'
+#define OESTE 'O'
 
 void moradia_set_num (void * m, int numero);
 int moradia_get_num (void * m);

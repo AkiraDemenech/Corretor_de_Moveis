@@ -2,6 +2,9 @@
 #define __PESSOAS__H
 #define CPF_TAM 15	// xxx.xxx.xxx-yy 
 #define NASC_TAM 11	// dd/mm/aaaa 
+#define MASC 'M'
+#define FEM 'F'
+#define IDK '~'
 
 void * new_pessoa (char sexo, char * cpf, char * nasc, char * nome, char * sobrenome);
 

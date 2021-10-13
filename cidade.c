@@ -167,14 +167,15 @@ void cidade_pm (void * cid, char * pm) {
 		return;
 	}
 
-	int n, p = 0, c = 0;
+	int n, p = 0, c = 0, nb = 0, masc = 0, fem = 0;
+	int norte = 0, sul = 0, leste = 0, oeste = 0, outros = 0;
 	char nome[NOME_TAM], sobrenome[NOME_TAM], datanas[NASC_TAM], sexo[COM_TAM];
 	char cpf[CPF_TAM], cep[CEP_TAM];
 	char com[COM_TAM];
 	while(!feof(pes)) {
 		clean(com, COM_TAM);
 		fscanf(pes,"%s",com);
-		printf("\n%d %d\t%s",p,c,com);
+		printf(com);
 		switch (com[0]) {
 			case 'p':				
 				clean(cpf,CPF_TAM);
@@ -185,10 +186,14 @@ void cidade_pm (void * cid, char * pm) {
 				fscanf(pes,"%s %s %s %s %s",cpf,nome,sobrenome,sexo,datanas);
 				m = new_pessoa(sexo[0],cpf,datanas,malloc(sizeof(char)*(1+comprimento(nome))),malloc(sizeof(char)*(1+comprimento(sobrenome))));				
 				copy(sobrenome,pessoa_sobrenome(m));
-				copy(nome,pessoa_nome(m));
-				printf("%s %s %s %s ",pessoa_sobrenome(m),pessoa_nome(m),pessoa_datanas(m),pessoa_cpf(m));
+				copy(nome,pessoa_nome(m));				
 				cidade_set_pessoa(cid,m);				
-				printf("%c",pessoa_gen(m)); //*/
+				printf("%c",pessoa_gen(m)); 
+				if(pessoa_gen(m) == MASC)
+					masc++;
+				else if(pessoa_gen(m) == FEM)
+					fem++;
+				else nb++;		//*/
 				p++;
 				break;
 			
@@ -205,10 +210,34 @@ void cidade_pm (void * cid, char * pm) {
 				copy(cpf,moradia_get_cpf(m));
 				cidade_set_moradia(cid,m);	//*/			
 				c++;
+				switch (moradia_get_face(m)) {
+					case NORTE:
+						norte++;
+						break;
+
+					case SUL:
+						sul++;
+						break;	
+
+					case LESTE:
+						leste++;
+						break;
+
+					case OESTE:
+						oeste++;
+						break;								
+				
+					default:
+						outros++;
+				}
+				break;
+
+			default:	
+				printf("?");
 		}
 	}
 	fclose(pes); 	
-	printf("\nAdicionadas %d pessoas e %d moradias.\n",p,c);
+	printf("\nAdicionadas %d pessoas (%d NB, %d Fem e %d Masc) e %d moradias (%d Norte, %d Sul, %d Leste, %d Oeste e %d em outros).\n",p,nb,fem,masc,c,norte,sul,leste,oeste,outros);
 }
 
 typedef struct cid {
@@ -254,6 +283,19 @@ void cidade_set_tamanho (void * cid, int tamanho) {
 	cidade_set_moradias(cid,tamanho);
 }
 
+void * cidade_get_moradias_em (void * cid, float x, float y, float w, float h) {
+	void * q = cidade_get_quadras_em(cid, x, y, w, h);
+	void * m = new_list(0);
+	void * t;
+	int c, b;
+	for(c = 0; c < list_get_len(q); c++) {		
+		t = hash_get(cidade_get_moradias_cep(cid), quadra_get_cep(li_get_valor(list_get(q, c))));
+		for(b = 0; b < list_get_len(t); b++) 
+			list_insert(m,li_get_valor(list_get(t,b)));
+	}
+	list_del_all(q);
+	return m;
+}
 
 void * cidade_get_quadras_em (void * cid, float x, float y, float w, float h) {	
 	return arv_get_quadras_em(cidade_get_quadras_avl(cid),NULL,x,y,x+w,y+h);
@@ -348,7 +390,7 @@ void cidade_set_moradias (void * cid, int n) {
 void cidade_set_moradia (void * cid, void * moradia) {
 	if(cid != NULL && moradia != NULL) {
 		if(moradia_get_cpf(moradia) == NULL)
-			printf(" Moradia em %s/%c/%d/%s sem CPF registrado\n",moradia_get_cep(moradia),moradia_get_face(moradia),moradia_get_num(moradia),moradia_get_compl(moradia));
+			printf(" Moradia em %s/%c/%d\t%s sem CPF registrado\n",moradia_get_cep(moradia),moradia_get_face(moradia),moradia_get_num(moradia),moradia_get_compl(moradia));
 		else hash_set(cidade_get_moradias_cpf(cid), moradia_get_cpf(moradia), moradia);
 		void* q = hash_get(cidade_get_moradias_cep(cid), moradia_get_cep(moradia));
 		if(q == NULL) {
@@ -431,6 +473,7 @@ void cidade_set_pessoas (void * cid, int n) {
 void cidade_set_pessoa (void * cid, void * pessoa) {
 	if(cid != NULL && pessoa != NULL)
 		hash_set(cidade_get_pessoas(cid),pessoa_cpf(pessoa),pessoa);
+//	printf("{%s\t%p}",pessoa_cpf(pessoa),pessoa);	
 }
 
 void cidade_del_pessoa (void * cid, char * cpf) {
