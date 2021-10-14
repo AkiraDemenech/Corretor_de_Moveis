@@ -5,7 +5,7 @@ clear:
 	rm *.o
 	rm *.out
 
-opts = -fstack-protector-all -std=c99
+opts = -fstack-protector-all -std=c99 -g
 comp = gcc
 
 

@@ -39,7 +39,7 @@ char * arq_nome_completo (char * caminho, char * nome) {
 	if(nome == NULL)
 		return caminho;		
 
-	char * nome_completo = malloc(sizeof(char) * (comprimento(caminho) + comprimento(nome)));			
+	char * nome_completo = malloc(sizeof(char) * (2 + comprimento(caminho) + comprimento(nome)));			
 	int i, c = 0;
 	for(i = 0; caminho[i] != '\0'; i++) 
 		nome_completo[c++] = caminho[i]; 

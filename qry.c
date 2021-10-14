@@ -460,18 +460,19 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 	}
 
 	printf("\nExecutadas %u consultas dentre %u potenciais comandos lidos.\n",exec,total);
-	printf("catac\t%u\n",qtd_catac);
+	printf("catac\t%u\t",qtd_catac);
 	printf("del\t%u\n",qtd_del);
-	printf("dloc\t%u\n",qtd_dloc);
+	printf("dloc\t%u\t",qtd_dloc);
 	printf("loc\t%u\n",qtd_loc);
+	printf("oloc?\t%u\t",qtd_oloci);
 	printf("loc?\t%u\n",qtd_loci);
-	printf("oloc?\t%u\n",qtd_oloci);
-	printf("oloc\t%u\n",qtd_oloc);
+	printf("oloc\t%u\t",qtd_oloc);
 	printf("dmpt\t%u\n",qtd_dmpt);
+	printf("mud\t%u\t",qtd_mud);
 	printf("dm?\t%u\n",qtd_dm);
-	printf("m?\t%u\n",qtd_m);
-	printf("mud\t%u\n",qtd_mud);
-	printf("mul\t%u\n",qtd_mul);
+	
+	printf("mul\t%u\t",qtd_mul);
+	printf("m?\t%u\n",qtd_dm);
 	printf("hom\t%u\n",qtd_hom);
 //	printf("\n");
 	

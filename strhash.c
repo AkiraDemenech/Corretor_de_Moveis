@@ -1,4 +1,5 @@
 #include<stdlib.h>
+#include<stdio.h>
 #include"hash.h"
 #include"list.h"
 
@@ -15,9 +16,9 @@ void ** hash_v_get_list (tabela * t, int pos) {
 	return t->vetor + pos;
 }
 
-void * new_hash_table (int size) {
+void * new_hash_table (int size) {	
 	tabela * t = (tabela*)malloc(sizeof(tabela));
-	t->vetor = malloc(sizeof(void*)*size);
+	t->vetor = calloc(size,sizeof(void*));		
 	t->len = size;
 //	while(size > 0) 	t->vetor[--size] = new_list(0);	
 	return t;
