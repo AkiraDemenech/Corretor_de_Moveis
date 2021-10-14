@@ -44,4 +44,8 @@ void * cidade_get_moradias_cep (void * cid);
 void cidade_del_moradia_cep (void * cid, char * cep);
 void cidade_del_moradia_cpf (void * cid, char * cpf);
 
+void cidade_set_aluguel (void * cid, void * loc);
+void cidade_set_alugueis (void * cid, int n);
+void * cidade_get_alugueis (void * cid);
+
 #endif

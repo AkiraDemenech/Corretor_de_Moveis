@@ -1,6 +1,5 @@
 import os, sys, time 
-'''out = sys.stdout
-sys.stdout = open('console.log', 'w')
+'''sys.stdout = open('console.log', 'w')
 
 arquivos = {}
 geo = []
@@ -14,19 +13,22 @@ for dp,d,a in os.walk('./BED'):
 			continue
 		arquivos[dp].append(a)	
 
-	'''
+#	'''
 
 
 
 bed = 'BED'	#str(input("Informe o BED (sem barra no final): "))
 bsd = 'BSD'	#str(input("Informe o BSD (sem barra no final): "))
 src = 'src'	#str(input("Informe o scr (sem a barra no final): "))
+res = 'res'
 
-progr = 'progr'
+progr = 't1'
 
 geos = list()
 
 e = c = 0
+
+falhas = open('falhas.txt','w')
 
 ti = time.time()
 try:
@@ -34,24 +36,29 @@ try:
 		geos.extend(filenames)
 		break
 	
-	for geo in geos:
+	for geo in geos:		
 		nomeGEO = geo.split('.')	
+		if not 'geo' in nomeGEO[1]:
+			continue
 		for(dirpath, dirnames, filenames) in os.walk(bed + '/' + nomeGEO[0]):
 			qrys = list()
 			qrys.extend(filenames)
 			break
 			
 		for qry in qrys:
-			linha = f'{src}/{progr} -e {bed} -q {nomeGEO[0]}/{qry} -o {bsd} -f {geo}'
-			print('\t',geo,'\t',qry,file=sys.stderr)
+		#	sys.stderr = sys.stdout = open(res+'/'+geo+qry+'.txt','w')
+			linha = f'{src}/{progr} -e {bed} -q {nomeGEO[0]}/{qry} -o {bsd} -f {geo} -pm {nomeGEO[0]}.pm'
+			print(c,'\t',geo,'\t',qry,file=sys.stderr)
 			
 			s = os.system(linha)
 			print('\n',linha,'\nreturn',s)
 			e += s != 0
 			if s != 0:
-				print('\n\treturn',s,'\n',file=sys.stderr)	
+				print(linha,'\n\treturn',s,'\n',file=sys.stderr)	
+				print(linha.__repr__(),'\t',c,'\t','return',s,file=falhas)
 			#	e += 1
 			c += 1	
+			
 except KeyboardInterrupt:
 	pass
 print(time.time() - ti,'para %d testes [' %c,e,'falhas ]',file=sys.stderr)		

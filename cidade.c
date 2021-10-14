@@ -8,6 +8,9 @@
 #include"hash.h"
 #include"arv.h"
 #include"arq.h"
+#include"loc.h"
+
+
 void * list_get_quadra (void * lista, float y) {
 	return list_get(lista,busca_bin_quadra(lista,y));
 }
@@ -251,16 +254,18 @@ typedef struct cid {
 	void * pessoas_hash;
 	void * moradias_cpf;
 	void * moradias_cep;
+	void * aluguel_hash;
 } cidade;
 
 void * new_cidade (char * nome, int tamanho) {
 	cidade * c = (cidade*)malloc(sizeof(cidade));
+	c->aluguel_hash	= NULL;
 	c->pessoas_hash	= NULL;
 	c->quadras_hash	= NULL;
 	c->quadras_avl	= NULL;
 	c->moradias_cep = NULL;
 	c->moradias_cpf = NULL;
-
+	
 	c->nome_cid 	= nome;
 	c->tam = tamanho;
 	return c;
@@ -284,6 +289,29 @@ void cidade_set_tamanho (void * cid, int tamanho) {
 	cidade_set_pessoas(cid, tamanho);	
 	cidade_set_quadras(cid, tamanho);
 	cidade_set_moradias(cid,tamanho);
+	cidade_set_alugueis(cid,tamanho);
+}
+
+void cidade_set_aluguel (void * cid, void * loc) {
+	if(loc != NULL) 
+		hash_set(cidade_get_alugueis(cid),loc_id(loc),loc);
+	if(loc_get_moradia(loc) != NULL)
+		cidade_set_moradia(cid,loc_get_moradia(loc));
+}
+
+void cidade_set_alugueis (void * cid, int n) {
+
+	if(cid != NULL)
+		((cidade *) cid)->aluguel_hash = new_hash_table(n);
+
+}
+
+void * cidade_get_alugueis (void * cid) {
+
+	if(cid != NULL)
+		return ((cidade *) cid)->aluguel_hash;
+	return NULL;	
+
 }
 
 void * cidade_get_moradias_em (void * cid, float x, float y, float w, float h) {
@@ -500,7 +528,9 @@ void cidade_del_all (void * cid) {
 	arv_del_quadras(cidade_get_quadras_avl(cid));
 	arv_del_all(cidade_get_quadras_avl(cid));
 	hash_del_all(cidade_get_quadras_hash(cid));
+	hash_del_all(cidade_get_alugueis(cid));
 	if(cid != NULL) 				
 		free(cid);
 	
 }
+

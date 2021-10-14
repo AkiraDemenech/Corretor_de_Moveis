@@ -32,9 +32,10 @@ qua:
 
 pm:	
 	$(comp) $(opts) -c pm.c -o pm.o		
+	$(comp) $(opts) -c loc.c -o aluguel.o
 
 c:	
-	$(comp) $(opts) t1.c quadra.o pm.o cidade.o arv.o arq.o qry.o hash.o list.o -o t1.out
+	$(comp) $(opts) t1.c quadra.o aluguel.o pm.o cidade.o arv.o arq.o qry.o hash.o list.o -o t1.out
 
 
 oh:
