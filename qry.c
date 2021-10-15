@@ -7,9 +7,11 @@
 #include"hash.h"
 #include"list.h"
 #include "qry.h"
+#include "svg.h"
 #include "arq.h"
 #include "arv.h"
 #include "loc.h"
+
 
 
 
@@ -170,9 +172,15 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 		printf("Arquivo \"%s\" não encontrado.\n",qry);
 		return cid;
 	}
+	char * svg_parcial = arq_nome_concat(0,'_','.',svg,"parcial.svg.");
+	FILE * svg_out = fopen(svg_parcial,"w");
 	FILE * txt_out = fopen(txt,"w");
-	FILE * svg_out = fopen(svg,"w");
-	
+	if(svg_out == NULL) {
+		printf(" Não foi possível criar o arquivo %s\n",svg_parcial);
+		svg_out = fopen(svg,"w");
+	} else fprintf(svg_out,"<svg>Parcial \n");	
+	if(txt_out == NULL)	
+		printf(" Não foi possível criar o arquivo %s\n",txt);
 	
 	unsigned int total = 0;
 	unsigned int exec = 0;
@@ -298,6 +306,8 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 
 			case 'c': // catac
 				fscanf(q, "%f %f %f %f", &u, &v, &t, &s);
+				svg_rect_open(svg_out,com,"#AB37C8","#AA0044",NULL,u,v,t,s,0.5,0);
+				svg_rect_close(svg_out);
 				fprintf(txt_out,"\ncatac\t%f %f %f %f\n",u,v,t,s);
 				printf("\n%u\tcatac\t%f %f %f %f\n", exec, u, v, t, s);
 				r = cidade_get_quadras_em(cid,u,v,t,s);
@@ -482,6 +492,8 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 				
 				if(com[4] == '?') { // oloc?
 					fscanf(q,"%f %f %f %f",&u,&v,&t,&s);
+					svg_rect_open(svg_out,com,NULL,"red",NULL,u,v,t,s,0,10);
+					svg_rect_close(svg_out);
 					fprintf(txt_out,"\noloc?\t%f %f %f %f\n",u,v,t,s);
 					printf("\n%u\toloc?\t%f %f %f %f\n",exec,u,v,t,s);
 					r = cidade_get_moradias_em(cid, u, v, t, s);
@@ -529,6 +541,31 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 
 	}
 
+	svg_close(svg_out);
+	if(svg_out != NULL)
+		fclose(svg_out);
+	
+	printf("\nArquivo \"%s\" ",svg);	
+	svg_out = fopen(svg,"w");
+	svg_open(svg_out);
+	svg_comment(svg_out,"\n202000560125\nGuilherme Akira Demenech Mori\n\t");
+	svg_comment(svg_out,svg);	
+	quadras_svg(svg_out,cidade_get_quadras_avl(cid));
+	FILE * svg_append = fopen(svg_parcial,"r");
+	com_tam = 0;
+	if(svg_append != NULL) {
+		while(!feof(svg_append)) {
+			c = fgetc(svg_append);
+			if(c == ' ')
+				com_tam = 1;
+			c *= com_tam;	
+			if(c > 0)
+				fprintf(svg_out,"%c",c);
+		}		
+		fclose(svg_append);
+	} // o parcial já fechou			
+//	svg_close(svg_out); 
+
 	printf("\nExecutadas %u consultas dentre %u potenciais comandos lidos.\n",exec,total);
 	if(qtd_catac != 0)
 		printf("catac\t%u\t",qtd_catac);
@@ -564,11 +601,12 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 	printf("\n");
 	
 	
-
-
 	
-	fclose(svg_out);
-	fclose(txt_out);
+
+	if(svg_out != NULL)
+		fclose(svg_out);
+	if(txt_out != NULL)	
+		fclose(txt_out);
 	fclose(q);
 	return cid;
 }

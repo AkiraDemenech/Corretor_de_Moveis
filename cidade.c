@@ -106,10 +106,10 @@ void cidade_svg (char * svg, void * cidade) {
 	FILE * res = fopen(svg,"w");
 	if(res != NULL) {
 		svg_open(res);
-		svg_coment_open(res);
+		svg_comment_open(res);
 		printf(svg);
-		fprintf(res,"\n202000560125 \nGuilherme Akira Demenech Mori \n%s\n ",arq_nome(svg));
-		svg_coment_close(res);
+		fprintf(res,"\n202000560125 \nGuilherme Akira Demenech Mori \n%s\n\t",arq_nome(svg));
+		svg_comment_close(res);
 		quadras_svg(res,cidade_get_quadras_avl(cidade));
 		svg_close(res);
 		fclose(res);
