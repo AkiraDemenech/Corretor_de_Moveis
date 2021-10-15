@@ -23,6 +23,9 @@ char * moradia_get_cep (void * m);
 char * moradia_get_cpf (void * m);
 void moradia_set_cpf (void * m, char * cpf);
 
+float moradia_get_x (void * endereco, void * cep);
+float moradia_get_y (void * endereco, void * cep);
+
 void * new_moradia (int num, char face, char * compl, char * cep, char * cpf);
 
 #endif

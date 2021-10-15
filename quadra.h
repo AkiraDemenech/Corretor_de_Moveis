@@ -3,6 +3,9 @@
 
 void copy (char * x, char * y);
 
+float cep_get_y (float y, float h, char f, int n);
+float cep_get_x (float x, float w, char f, int n);
+
 void * new_quadra (float x, float y, float w, float h, char* esp, char * cc, char * cp, char * cep);
 
 void quadra_set_fill (void * q, char * cp);

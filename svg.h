@@ -16,4 +16,13 @@ void svg_text_close (void *svg);
 void svg_rect (void * arq, char * id, char * cp, char * cc, char * esp, float x, float y, float w, float h);
 void svg_rect_open (void *svg, char * id, char * fill, char * stroke, char * swid, float x, float y, float width, float height, float opacity, float dash);
 void svg_rect_close (void *svg);
+
+void svg_ellipse (void * img, char * id, char * cp, char * cc, char * swid, float x, float y, float w, float h);
+void svg_ellipse_open (void * svg, char * id, char * fill, char * stroke, char * swid, float x, float y, float width, float height);
+void svg_ellipse_close (void *svg);
+
+void svg_circle (void * arq, char * id, char * cp, char * cc, char * swid, float x, float y, float d);
+void svg_line (void * svg, char * color, char * width, float xi, float yi, float xf, float yf);
+
+
 #endif

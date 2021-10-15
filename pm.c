@@ -135,5 +135,11 @@ void moradia_set_num (void * m, int numero) {
 		((moradia*)m)->num = numero;
 }
 
+float moradia_get_x (void * endereco, void * cep) {
+	return cep_get_x(quadra_get_x(cep),quadra_get_w(cep),moradia_get_face(endereco),moradia_get_num(endereco));
+}
 
+float moradia_get_y (void * endereco, void * cep) {
+	return cep_get_y(quadra_get_y(cep),quadra_get_h(cep),moradia_get_face(endereco),moradia_get_num(endereco));
+}
 

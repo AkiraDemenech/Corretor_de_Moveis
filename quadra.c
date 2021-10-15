@@ -1,5 +1,6 @@
 #include<stdlib.h>
 #include"quadra.h"
+#include"moradias.h"
 
 typedef struct quad {
 	float x, y, w, h;
@@ -115,8 +116,21 @@ void quadra_set_fill (void * q, char * cp) {
 		((quadra*)q)->fill = cp;	
 }
 
+float cep_get_x (float x, float w, char f, int n) {
+	if(f == NORTE || f == SUL)	
+		return x + n;
+	if(f == OESTE)	
+		return x + w;
+	return x; // leste	
+}
 
-
+float cep_get_y (float y, float h, char f, int n) {
+	if(f == LESTE || f == OESTE)
+		return y + n;
+	if(f == NORTE)
+		return y + h;
+	return y; // sul
+}
 
 void copy (char * x, char * y) {
 	if(x != NULL && y != NULL) {

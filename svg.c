@@ -80,9 +80,44 @@ void svg_rect_close (void *svg) {
 		fprintf(svg,"</rect> \n");
 }
 
+void svg_line (void * svg, char * color, char * width, float xi, float yi, float xf, float yf) {
+	if(svg == NULL)
+		return;
+	fprintf(svg,"\t\t<line x1=\"%f\" x2=\"%f\" y1=\"%f\" y2=\"%f\"\tstyle=\"",xi,xf,yi,yf);	
+	if(color != NULL)
+		fprintf(svg,"stroke:%s;",color);
+	if(width != NULL)	
+		fprintf(svg,"stroke-width:%s",width);
+	fprintf(svg,"\"/>\n");	
 
-
-
-// círculo
-// elipse
-// linha
+}
+void svg_circle (void * arq, char * id, char * cp, char * cc, char * swid, float x, float y, float d) {
+	svg_ellipse(arq, id, cp, cc, swid, x, y, d, d);
+}
+void svg_ellipse (void * img, char * id, char * cp, char * cc, char * swid, float x, float y, float w, float h) {
+	svg_ellipse_open(img,id,cp,cc,swid,x,y,w,h);
+	svg_text_open(img,cc,x+(w*0.1),y+(h*0.9));
+	if(id != NULL) fprintf(img,id);
+	svg_text_close(img);
+	svg_ellipse_close(img);
+}
+void svg_ellipse_open (void * svg, char * id, char * fill, char * stroke, char * swid, float x, float y, float width, float height) {
+	if(svg == NULL)
+		return;
+	fprintf(svg,"\t\t<ellipse cx=\"%f\" cy=\"%f\" rx=\"%f\" ry=\"%f\"\tstyle=\"",x,y,width/2,height/2);	
+	if(fill != NULL)
+		fprintf(svg,"fill:%s;",fill);	
+	fprintf(svg,"stroke");
+	if(stroke == NULL)
+		fprintf(svg,"-opacity:0");
+	else fprintf(svg,":%s",stroke);
+	if(swid != NULL)
+		fprintf(svg,";stroke-width:%s",swid);
+	if(id != NULL)	
+		fprintf(svg,"\"\tid=\"%s",id);
+	fprintf(svg,"\">");
+}
+void svg_ellipse_close (void *svg) {
+	if(svg != NULL)
+		fprintf(svg,"</ellipse> \n");
+}
