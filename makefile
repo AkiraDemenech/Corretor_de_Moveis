@@ -12,6 +12,9 @@ comp = gcc
 qry:	
 	$(comp) $(opts) -c qry.c -o qry.o
 
+svg:
+	$(comp) $(opts) -c svg.c -o svg.o
+
 arq:
 	$(comp) $(opts) -c arq.c -o arq.o
 
@@ -35,7 +38,7 @@ pm:
 	$(comp) $(opts) -c loc.c -o aluguel.o
 
 c:	
-	$(comp) $(opts) t1.c quadra.o aluguel.o pm.o cidade.o arv.o arq.o qry.o hash.o list.o -o t1.out
+	$(comp) $(opts) t1.c quadra.o aluguel.o pm.o cidade.o arv.o arq.o qry.o hash.o list.o svg.o -o t1.out
 
 
 oh:
@@ -44,6 +47,7 @@ oh:
 	make din
 	make esp
 	make cid
+	make svg
 	make qry
 	make qua
 	make pm

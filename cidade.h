@@ -4,8 +4,11 @@
 #define CEP_TAM 32
 #define NOME_TAM 128
 
+void quadras_svg (void * img, void * arvore);
+
 char * cidade_get_nome (void * cid);
 void * cidade_geo (char * geo);
+void cidade_svg (char * svg, void * cidade);
 void * new_cidade (char * nome, int tamanho);
 
 void cidade_pm (void * cid, char * pm);

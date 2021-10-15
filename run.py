@@ -70,8 +70,12 @@ except KeyboardInterrupt:
 print(time.time() - ti,'para %d testes [' %c,e,'falhas ]',file=sys.stderr)		
 for f_e in falhou_em:	print(*f_e,file=sys.stderr)
 
+c = 0
 for dirpath, dirnames, filenames in os.walk(bsd):
 		for filename in filenames:
 			if '.dot' in filename:
-				print(filename,os.system('dot -T svg %s/%s -o %s/%s/%s.svg ' %(bsd,filename,bsd,dot,filename)))
+				s = os.system('dot -T svg %s/%s -o %s/%s/%s.svg ' %(bsd,filename,bsd,dot,filename))
+				print(filename,'\t',s)				
+				c += not s
 		break
+print(c,'árvores convertidas para SVG')		

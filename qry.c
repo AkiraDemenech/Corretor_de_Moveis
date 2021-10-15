@@ -173,6 +173,7 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 	FILE * txt_out = fopen(txt,"w");
 	FILE * svg_out = fopen(svg,"w");
 	
+	
 	unsigned int total = 0;
 	unsigned int exec = 0;
 	unsigned int qtd_catac = 0, qtd_del = 0, qtd_dm = 0, qtd_dmpt = 0, qtd_dloc = 0, qtd_loc = 0, qtd_loci = 0, qtd_oloc = 0, qtd_oloci = 0, qtd_hom = 0, qtd_mul = 0, qtd_mud = 0, qtd_m = 0;
@@ -209,10 +210,11 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 						registrar_moradia(li_get_valor(list_get(b, c)), txt_out);
 						registrar_aluguel(moradia_get_loc(li_get_valor(list_get(b, c))), txt_out);
 					}	
-					if(c <= 0)
-						fprintf(txt_out,"Moradias com CEP %s não foram encontradas.\n",cep);
 					exec++;
 					qtd_m++;
+					if(c <= 0)
+						fprintf(txt_out,"Moradias com CEP %s não foram encontradas.\n",cep);
+					
 				} else if(com[2] == 'd') { // mud
 					clean(cpf,CPF_TAM);
 					fscanf(q,"%s %s %s %d",cpf,cep,com,&c);					
@@ -375,6 +377,7 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 								printf("\tMoradia para CPF %s não encontrada!\n",cpf);
 							} else if(moradia_get_loc(b) != NULL) 								
 								fprintf(txt_out,"A moradia é alugada:\n");
+							else fprintf(txt_out, "Moradia própria \n");	
 							registrar_aluguel(moradia_get_loc(b),txt_out);
 							qtd_dm++;
 							exec++;	
@@ -527,21 +530,38 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 	}
 
 	printf("\nExecutadas %u consultas dentre %u potenciais comandos lidos.\n",exec,total);
-	printf("catac\t%u\t",qtd_catac);
-	printf("del\t%u\n",qtd_del);
-	printf("dloc\t%u\t",qtd_dloc);
-	printf("loc\t%u\n",qtd_loc);
-	printf("oloc?\t%u\t",qtd_oloci);
-	printf("loc?\t%u\n",qtd_loci);
-	printf("oloc\t%u\t",qtd_oloc);
-	printf("dmpt\t%u\n",qtd_dmpt);
-	printf("mud\t%u\t",qtd_mud);
-	printf("dm?\t%u\n",qtd_dm);
+	if(qtd_catac != 0)
+		printf("catac\t%u\t",qtd_catac);
+	if(qtd_del != 0)	
+		printf("del\t%u\n",qtd_del);
+
+	if(qtd_dloc != 0)	
+		printf("dloc\t%u\t",qtd_dloc);
+	if(qtd_loc != 0)	
+		printf("loc\t%u\n",qtd_loc);
 	
-	printf("mul\t%u\t",qtd_mul);
-	printf("m?\t%u\n",qtd_dm);
-	printf("hom\t%u\n",qtd_hom);
-//	printf("\n");
+	if(qtd_oloci != 0)
+		printf("oloc?\t%u\t",qtd_oloci);
+	if(qtd_loci != 0)
+		printf("loc?\t%u\n",qtd_loci);
+
+	if(qtd_oloc != 0)	
+		printf("oloc\t%u\t",qtd_oloc);
+	if(qtd_dmpt != 0)	
+		printf("dmpt\t%u\n",qtd_dmpt);
+
+	if(qtd_mud != 0)	
+		printf("mud\t%u\t",qtd_mud);
+	if(qtd_dm != 0)	
+		printf("dm?\t%u\n",qtd_dm);
+	
+	if(qtd_mul != 0)
+		printf("mul\t%u\t",qtd_mul);
+	if(qtd_m != 0)		
+		printf("m?\t%u\n",qtd_m);
+	if(qtd_hom != 0)	
+		printf("hom\t%u\n",qtd_hom);
+	printf("\n");
 	
 	
 

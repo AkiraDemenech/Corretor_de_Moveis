@@ -8,6 +8,7 @@
 #include"hash.h"
 #include"arv.h"
 #include"arq.h"
+#include"svg.h"
 #include"loc.h"
 
 
@@ -20,7 +21,7 @@ int busca_bin_quadra (void * lista, float y) {
 	if(lista == NULL)
 		return -2;
 
-	int i = 0, f = list_get_len(lista);	
+	int i = 0, f = list_get_len(lista) - 1;	
 	int c;
 	float t;
 	while(i < f) {
@@ -83,6 +84,37 @@ int arv_get_quadras_em (void * avl_in, void * list_out, float xi, float yi, floa
 	}
 	
 	return busca;
+}
+void quadras_svg (void * img, void * arvore) {  
+	int c;
+	void * q;
+	while(img != NULL && arvore != NULL) {		
+		quadras_svg(img,arv_get_esq(arvore));
+		c = list_get_len(arv_get_valor(arvore));
+		while(c > 0) {
+			c--;
+			q = li_get_valor(list_get(arv_get_valor(arvore),c));
+			if(q != NULL)
+				svg_rect(img,quadra_get_cep(q),quadra_get_fill(q),quadra_get_strk(q),quadra_get_esp(q),quadra_get_x(q),quadra_get_y(q),quadra_get_w(q),quadra_get_h(q));
+		}
+		arvore = arv_get_dir(arvore);
+	}
+}	
+void cidade_svg (char * svg, void * cidade) {
+	if(svg == NULL)
+		return;
+	FILE * res = fopen(svg,"w");
+	if(res != NULL) {
+		svg_open(res);
+		svg_coment_open(res);
+		printf(svg);
+		fprintf(res,"\n202000560125 \nGuilherme Akira Demenech Mori \n%s\n ",arq_nome(svg));
+		svg_coment_close(res);
+		quadras_svg(res,cidade_get_quadras_avl(cidade));
+		svg_close(res);
+		fclose(res);
+	} else printf("Arquivo %s não pôde ser aberto.",svg);
+	printf("\n");
 }
 
 void * cidade_geo (char * geo) {
@@ -389,16 +421,16 @@ void cidade_del_quadra_avl (void * cid, float x, float y) {
 	void * a = arv_get(cidade_get_quadras_avl(cid), x);
 	int b = busca_bin_quadra(arv_get_valor(a), y);
 	if(b < 0) {		
-		printf(" Quadra em (%f %f) não encontrada na busca binária %d.\n",x,y,b);
-		for(b = 0; b < list_get_len(arv_get_valor(a)); b++)
-			if(quadra_get_y(li_get_valor(list_get(arv_get_valor(a),b))) == y) {
-				printf("[Encontrada %d]\n",b);
-				break;
-			}
-		if(b == list_get_len(arv_get_valor(a)))	{
-			printf("\tE continua desaparecida!\n");
-			b = -1;
-		}
+		printf("\n Quadra em (%f %f) não encontrada na busca binária %d.\n",x,y,b);
+		int c;
+		for(c = 0; c < list_get_len(arv_get_valor(a)); c++)
+			if(quadra_get_y(li_get_valor(list_get(arv_get_valor(a),c))) == y) {
+				printf("[Encontrada ");
+				if(b < 0)
+					printf("primeira ocorrência ");
+				printf("%s em %d]\n",quadra_get_cep(li_get_valor(list_get(arv_get_valor(a),c))),c);	
+				b = c;
+			} else printf(" %d\t%f\t%s\n",c,quadra_get_y(li_get_valor(list_get(arv_get_valor(a),c))),quadra_get_cep(li_get_valor(list_get(arv_get_valor(a),c))));		 						 
 	}	
 	if(b >= 0) {		
 		printf("Apagando quadra %s (%f %f)\n",quadra_get_cep(li_get_valor(list_get(arv_get_valor(a),b))),quadra_get_x(li_get_valor(list_get(arv_get_valor(a),b))),quadra_get_y(li_get_valor(list_get(arv_get_valor(a),b))));
@@ -408,7 +440,7 @@ void cidade_del_quadra_avl (void * cid, float x, float y) {
 			list_del_all(arv_get_valor(a));
 			avl_del(cidade_get_quadras_avl(cid), x);
 		}				
-	} 
+	} else printf("\tE continua desaparecida!\n");
 }
 
 void cidade_del_quadra_hash (void * cid, char * cep) {
