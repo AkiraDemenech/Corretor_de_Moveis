@@ -8,6 +8,7 @@
 #include"list.h"
 #include "qry.h"
 #include "arq.h"
+#include "arv.h"
 #include "loc.h"
 
 
@@ -57,19 +58,20 @@ int registrar_gen_por_moradia (FILE * txt, FILE * svg, void * cidade, char gen, 
 
 int del (void * cidade, char * cep, FILE * res) {
 	if(cep == NULL || res == NULL)
-		return 0;
+		return 0;		
 	void * quadra = cidade_get_quadra_hash(cidade, cep);	
-	cidade_del_quadra_hash(cidade, cep);
+	cidade_del_quadra_hash(cidade, cep);	
 	if(quadra == NULL) {
 		printf("Quadra de CEP %s não encontrada.\n",cep);
 		fprintf(res,"\nQuadra de CEP %s não encontrada.\n",cep);		
 	} else {
-		fprintf(res,"\n\tCEP:\t%s\n\t(%f %f) %fx%f\n\t %f  %s %s \n",quadra_get_cep(quadra),quadra_get_x(quadra),quadra_get_y(quadra),quadra_get_w(quadra),quadra_get_h(quadra),quadra_get_esp(quadra),quadra_get_strk(quadra),quadra_get_fill(quadra));
+		fprintf(res,"\n\tCEP:\t%s\n\t(%f %f) %fx%f\n\t %s  %s %s \n",quadra_get_cep(quadra),quadra_get_x(quadra),quadra_get_y(quadra),quadra_get_w(quadra),quadra_get_h(quadra),quadra_get_esp(quadra),quadra_get_strk(quadra),quadra_get_fill(quadra));
 		free(quadra);
 	}	
-	void * moradias = hash_get(cidade_get_moradias_cep(cidade),cep);
 	int t = 0;
-	while(list_get_len(moradias) > 0) {
+	void * moradias = hash_get(cidade_get_moradias_cep(cidade),cep);	
+//	printf("%d moradias\n",list_get_len(moradias));
+	while(list_get_len(moradias) > 0) {		
 		fprintf(res,"\n");		
 		if(li_get_valor(list_get_atual(moradias)) != NULL) {			
 			if(moradia_get_cpf(li_get_valor(list_get_atual(moradias))) != NULL) {
@@ -103,6 +105,59 @@ int del (void * cidade, char * cep, FILE * res) {
 		list_del(moradias,list_get_index(moradias));					
 	}
 	return t;
+}
+
+void arv_arq (FILE * arq, void * arv) {
+	while(arq != NULL && arv != NULL) {
+		fprintf(arq,"\n\t\t%f [label=\"x = %f \n\t\t\txMin = %f \n\t\t\txMax = %f  \n\t\t\t %d quadras: ",arv_get_chave(arv),arv_get_chave(arv),arv_get_min(arv),arv_get_max(arv),list_get_len(arv_get_valor(arv)));
+		int c, d = list_get_len(arv_get_valor(arv));
+		if(d > 4)
+			d = 4;
+		for(c = 0; c < d; c++) 				
+			fprintf(arq," \n\t\t\t\tCEP[%d] %s\ty = %f",c,quadra_get_cep(li_get_valor(list_get(arv_get_valor(arv),c))),quadra_get_y(li_get_valor(list_get(arv_get_valor(arv),c))));
+		if(c < list_get_len(arv_get_valor(arv)))	
+			fprintf(arq,"\n\t\t\t\t....");	
+	//	else fprintf(arq,"\n\t\t");	
+		fprintf(arq,"\n\t\t\tAltura = %d \n\t\t\tFat. Balanc. = %d\"]",arv_get_altura(arv),avl_dif_alt(arv));	
+		if(arv_get_esq(arv) != NULL) 
+			fprintf(arq,"\n\t\t %f -> %f ;",arv_get_chave(arv),arv_get_chave(arv_get_esq(arv)));			
+		if(arv_get_dir(arv) != NULL) 
+			fprintf(arq,"\n\t\t %f -> %f ;",arv_get_chave(arv),arv_get_chave(arv_get_dir(arv)));
+		fprintf(arq,"\n");	
+		arv_arq(arq,arv_get_dir(arv));
+		arv = arv_get_esq(arv);		
+		
+	} 
+}
+
+void dmpt (char * dot, void * avl, int size) {
+	FILE * grafo = fopen(dot,"w");
+	if(grafo == NULL || dot == NULL)
+		return;
+	fprintf(grafo, "digraph Gadm");	
+	int c;
+	for(c = 1 + ult_ind('-',dot); dot[c] != '\0'; c++)
+		if((dot[c] >= '0' && dot[c] <= '9') || (dot[c] <= 'Z' && dot[c] >= 'A') || (dot[c] <= 'z' && dot[c] >= 'a'))
+			fprintf(grafo,"%c",dot[c]);
+		else fprintf(grafo,"_");	
+	fprintf(grafo, "{\n\tsize=\"%d\"\n\tnode [color=aquamarine, style=filled]\n",size);
+	arv_arq(grafo,avl);
+	/*	
+	x = %f
+	xMin = %f
+	xMax = %f
+	Altura = %d
+	Fat. Balanc. = %d
+	%d quadras:
+		CEP[0]  
+		CEP[1] 
+		CEP[2] 
+		CEP[3] 
+		....
+	*/
+	fprintf(grafo,"\n} ");
+	fclose(grafo);
+	printf("Criado o arquivo \"%s\" \n",dot);
 }
 
 void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
@@ -240,6 +295,13 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 			break;
 
 			case 'c': // catac
+				fscanf(q, "%f %f %f %f", &u, &v, &t, &s);
+				fprintf(txt_out,"\ncatac\t%f %f %f %f\n",u,v,t,s);
+				printf("\n%u\tcatac\t%f %f %f %f\n", exec, u, v, t, s);
+				r = cidade_get_quadras_em(cid,u,v,t,s);
+				printf("%d quadras inteiramente na área.\n",list_get_len(r));
+				for(c = 0; c < list_get_len(r); c++) 
+					printf("%d moradias apagadas em %s\n",del(cid,quadra_get_cep(li_get_valor(list_get(r,c))),txt_out),quadra_get_cep(li_get_valor(list_get(r,c))));
 				exec++;
 				qtd_catac++;
 			break;
@@ -264,17 +326,17 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 								printf(" Locação ID %s",loc_id(b));
 								if(loc_get_moradia(b) != NULL)
 									printf("\t%s/%c/%d\t%s",moradia_get_cep(loc_get_moradia(b)),moradia_get_face(loc_get_moradia(b)),moradia_get_num(loc_get_moradia(b)),moradia_get_compl(loc_get_moradia(b)));
-								printf(" não possui CPF relacionado.");	
+								printf(" não possui CPF relacionado. N");	
 							} else {
 								m = moradia_get_cpf(loc_get_moradia(b));
 								a = cidade_get_pessoa(cid,m);
 								hash_del(cidade_get_moradias_cpf(cid),m);
 								registrar_pessoa(a,txt_out);
 								fprintf(txt_out,"CPF:\t%s\n",m);								
-								printf("CPF %s ",m);
+								printf("CPF %s n",m);
 							}	
 							if(a == NULL)
-								printf("não identificado.");							
+								printf("ão identificado.");							
 						}	
 						printf("\n");	
 						registrar_moradia(loc_get_moradia(b),txt_out);
@@ -316,7 +378,12 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 							registrar_aluguel(moradia_get_loc(b),txt_out);
 							qtd_dm++;
 							exec++;	
-						} else if(com[2] == 't' && com[3] == 'p') { // dmpt
+						} else if(com[3] == 't' && com[2] == 'p') { // dmpt
+							clean(sfx, id_tam);
+							fscanf(q,"%s",sfx);
+							fprintf(txt_out,"\n%s\t%s\n",com,sfx);
+							printf("\n%u\t%s\t%s\n",exec,com,sfx);
+							dmpt(arq_nome_concat(0,'.','.',arq_nome_concat(1,'-','.',svg,sfx),"dot"),cidade_get_quadras_avl(cid),hash_get_len(cidade_get_quadras_hash(cid))*16);
 							qtd_dmpt++;
 							exec++;	
 						}
@@ -351,8 +418,8 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 						}
 						fprintf(txt_out,"\n");
 						if(moradia_get_cpf(loc_get_moradia(r)) != NULL) {
-							registrar_pessoa(cidade_get_pessoa(cid, moradia_get_cpf(loc_get_moradia(r))), txt_out);
 							fprintf(txt_out,"CPF:\t%s\n",moradia_get_cpf(loc_get_moradia(r)));							
+							registrar_pessoa(cidade_get_pessoa(cid, moradia_get_cpf(loc_get_moradia(r))), txt_out);
 						}
 						
 					}	

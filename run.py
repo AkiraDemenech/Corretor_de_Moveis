@@ -21,6 +21,7 @@ bed = 'BED'	#str(input("Informe o BED (sem barra no final): "))
 bsd = 'BSD'	#str(input("Informe o BSD (sem barra no final): "))
 src = 'src'	#str(input("Informe o scr (sem a barra no final): "))
 res = 'res'
+dot = 'DOT'
 
 progr = 't1'
 
@@ -28,7 +29,9 @@ geos = list()
 
 e = c = 0
 
-falhas = open('falhas.txt','w')
+falhas = None
+falhou_em = []
+#
 
 ti = time.time()
 try:
@@ -54,11 +57,21 @@ try:
 			print('\n',linha,'\nreturn',s)
 			e += s != 0
 			if s != 0:
+				if falhas == None:
+					falhas = open('falhas.txt','w')
 				print(linha,'\n\treturn',s,'\n',file=sys.stderr)	
 				print(linha.__repr__(),'\t',c,'\t','return',s,file=falhas)
+				falhou_em.append((linha,s))
 			#	e += 1
 			c += 1	
 			
 except KeyboardInterrupt:
 	pass
 print(time.time() - ti,'para %d testes [' %c,e,'falhas ]',file=sys.stderr)		
+for f_e in falhou_em:	print(*f_e,file=sys.stderr)
+
+for dirpath, dirnames, filenames in os.walk(bsd):
+		for filename in filenames:
+			if '.dot' in filename:
+				print(filename,os.system('dot -T svg %s/%s -o %s/%s/%s.svg ' %(bsd,filename,bsd,dot,filename)))
+		break

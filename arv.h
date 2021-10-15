@@ -6,6 +6,7 @@ int maior (int x, int y); // retorna o maior dos dois valores
 int arv_get_altura (void * no); //	retorna a altura de um dado nó na árvore. Retorna 0 para NULL
 void arv_set_altura (void * no); //	corrige a altura do nó e das raízes das superárvores se for preciso
 
+
 void * arv_get_pai (void * no); //	retorna o nó pai do nó dado
 void * arv_get_dir (void * no); //	retorna a subárvore direita de uma árvore dada
 void * arv_get_esq (void * no); //	retorna a subárvore esquerda de uma árvore dada
@@ -30,6 +31,8 @@ void * avl_insert_all (void * raiz, void * tudo);
 
 float arv_get_chave (void * no); //	retorna a chave de um dado nó
 void* arv_get_valor (void * no); //	retorna o valor armazenado por um nó dado
+
+int avl_dif_alt (void * a);
 
 void * avl_eq (void * raiz); // equilibra a árvore AVL e retorna a nova raiz
 

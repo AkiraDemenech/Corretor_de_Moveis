@@ -1,5 +1,4 @@
 #include<stdlib.h>
-#include<stdio.h>
 #include"hash.h"
 #include"list.h"
 
@@ -59,12 +58,11 @@ void * hash_get (void * tabesp, char * chave) {
 	if(tabesp == NULL) 
 		return NULL;
 	void * l = * hash_v_get_list(tabesp, hash(chave) % hash_get_len(tabesp));	
-//	void * v = NULL;
+//	void * v = NULL;	
 	int c;
-	for(c = 0; c < list_get_len(l); c++)
+	for(c = 0; c < list_get_len(l); c++) 		
 		if(compare(li_get_chave(list_get(l,c)),chave) == 0) 
-			return li_get_valor(list_get(l, c));
-					
+			return li_get_valor(list_get(l, c));							
 	return NULL;
 }
 

@@ -27,9 +27,9 @@ int busca_bin_quadra (void * lista, float y) {
 		c = (i + f) / 2;
 		t = quadra_get_y(li_get_valor(list_get(lista,c)));		
 		if(t > y)
-			i = c - 1;
+			i = c + 1;
 		else if(t < y)
-			f = c + 1;
+			f = c - 1;
 		else return c;			
 	}		
 	return -1;
@@ -97,11 +97,11 @@ void * cidade_geo (char * geo) {
 		return c;
 	}
 
-	int l, cont = 1, quad = 0;
-	float espessura = 1;
+	int l, cont = 1, quad = 0;	
 	float t0,t1,t2,t3;
 	char * fill = NULL;
 	char * strk = NULL;
+	char * espessura = NULL;
 	char cep[CEP_TAM];
 	char com[COM_TAM];	
 	while(!feof(g)) {
@@ -114,11 +114,13 @@ void * cidade_geo (char * geo) {
 				printf("As cores %s e %s ",fill,strk);
 				if(cont == 0) {
 					printf("não foram usadas.\n");
+					free(espessura);
 					free(strk);
 					free(fill);
 				} else printf("foram aplicadas a %d quadras.\n",cont);
+				espessura = calloc(16,sizeof(char));
 				clean(cep,CEP_TAM);
-				fscanf(g,"%f %s",&espessura,cep);
+				fscanf(g,"%s %s",espessura,cep);
 				fill = malloc(sizeof(char)*(comprimento(cep)+1));
 				copy(cep,fill);
 				clean(cep,CEP_TAM);
@@ -126,7 +128,7 @@ void * cidade_geo (char * geo) {
 				strk = malloc(sizeof(char) * (comprimento(cep) + 1));				
 				cont = 0;
 				copy(cep,strk);
-				printf("Novas cores = %f %s %s\n",espessura,fill,strk);
+				printf("Novas cores = %s %s %s\n",espessura,fill,strk);
 			break;
 
 			case 'q':
@@ -134,10 +136,10 @@ void * cidade_geo (char * geo) {
 				fscanf(g,"%s",cep);
 				l = comprimento(cep) + 1;
 				fscanf(g,"%f %f %f %f",&t0,&t1,&t2,&t3);
-				b = new_quadra(t0,t1,t2,t3,espessura,strk,fill,malloc(sizeof(char)*l));
-				cidade_set_quadra(c, b);
+				b = new_quadra(t0,t1,t2,t3,espessura,strk,fill,malloc(sizeof(char)*l));				
 				clean(quadra_get_cep(b), l);
 				copy(cep,quadra_get_cep(b));				
+				cidade_set_quadra(c, b);
 				cont++;
 				quad++;
 			break;
@@ -386,14 +388,27 @@ void cidade_set_quadra (void * cid, void * quadra) {
 void cidade_del_quadra_avl (void * cid, float x, float y) {
 	void * a = arv_get(cidade_get_quadras_avl(cid), x);
 	int b = busca_bin_quadra(arv_get_valor(a), y);
+	if(b < 0) {		
+		printf(" Quadra em (%f %f) não encontrada na busca binária %d.\n",x,y,b);
+		for(b = 0; b < list_get_len(arv_get_valor(a)); b++)
+			if(quadra_get_y(li_get_valor(list_get(arv_get_valor(a),b))) == y) {
+				printf("[Encontrada %d]\n",b);
+				break;
+			}
+		if(b == list_get_len(arv_get_valor(a)))	{
+			printf("\tE continua desaparecida!\n");
+			b = -1;
+		}
+	}	
 	if(b >= 0) {		
+		printf("Apagando quadra %s (%f %f)\n",quadra_get_cep(li_get_valor(list_get(arv_get_valor(a),b))),quadra_get_x(li_get_valor(list_get(arv_get_valor(a),b))),quadra_get_y(li_get_valor(list_get(arv_get_valor(a),b))));
 		hash_del(cidade_get_quadras_hash(cid),quadra_get_cep(li_get_valor(list_get(arv_get_valor(a),b))));
 		list_del(arv_get_valor(a), b);
 		if(list_get_len(arv_get_valor(a)) <= 0) {
 			list_del_all(arv_get_valor(a));
 			avl_del(cidade_get_quadras_avl(cid), x);
 		}				
-	}
+	} 
 }
 
 void cidade_del_quadra_hash (void * cid, char * cep) {
@@ -404,7 +419,7 @@ void cidade_del_quadra_hash (void * cid, char * cep) {
 void * cidade_get_quadra_avl (void * cid, float x, float y) {	 
 	return li_get_valor(list_get_quadra(arv_get_valor(arv_get(cidade_get_quadras_avl(cid),x)),y));
 }
-void * cidade_get_quadra_hash (void * cid, char * cep) {
+void * cidade_get_quadra_hash (void * cid, char * cep) {	
 	return hash_get(cidade_get_quadras_hash(cid), cep);
 }
 

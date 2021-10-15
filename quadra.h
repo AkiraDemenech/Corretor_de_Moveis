@@ -3,7 +3,7 @@
 
 void copy (char * x, char * y);
 
-void * new_quadra (float x, float y, float w, float h, float esp, char * cc, char * cp, char * cep);
+void * new_quadra (float x, float y, float w, float h, char* esp, char * cc, char * cp, char * cep);
 
 void quadra_set_fill (void * q, char * cp);
 char * quadra_get_fill (void * q);
@@ -14,8 +14,8 @@ char * quadra_get_strk (void * q);
 void quadra_set_cep (void * q, char * zip);
 char * quadra_get_cep (void * q);
 
-float quadra_get_esp (void * q);
-void quadra_set_esp (void * q, float esp);
+char * quadra_get_esp (void * q);
+void quadra_set_esp (void * q, char * esp);
 
 void quadra_set_x (void * q, float x);
 void quadra_set_y (void * q, float y);

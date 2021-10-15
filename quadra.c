@@ -4,12 +4,12 @@
 typedef struct quad {
 	float x, y, w, h;
 	char * cep;
-	char * fill;
+	char * esp;	
 	char * strk;
-	float esp;	
+	char * fill;		
 } quadra;
 
-void * new_quadra (float x, float y, float w, float h, float esp, char * cc, char * cp, char * cep) {
+void * new_quadra (float x, float y, float w, float h, char * esp, char * cc, char * cp, char * cep) {
 	quadra * q = (quadra *) malloc(sizeof(quadra));
 	q->x = x;
 	q->y = y;
@@ -70,14 +70,14 @@ void quadra_set_h (void * q, float h) {
 		((quadra*)q)->h = h;
 }
 
-void quadra_set_esp (void * q, float esp) {
+void quadra_set_esp (void * q, char * esp) {
 	if(q != NULL)
 		((quadra*)q)->esp = esp;	
 }
 
-float quadra_get_esp (void * q) {
+char * quadra_get_esp (void * q) {
 	if(q == NULL)
-		return 0;
+		return NULL;
 	return ((quadra*)q)->esp;	
 }
 
