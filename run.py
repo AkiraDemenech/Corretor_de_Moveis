@@ -76,6 +76,6 @@ for dirpath, dirnames, filenames in os.walk(bsd):
 			if '.dot' in filename:
 				s = os.system('dot -T svg %s/%s -o %s/%s/%s.svg ' %(bsd,filename,bsd,dot,filename))
 				print(filename,'\t',s)				
-				c += not s
+				c += not s 
 		break
 print(c,'árvores convertidas para SVG')		
