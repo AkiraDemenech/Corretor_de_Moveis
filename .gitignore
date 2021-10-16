@@ -1,6 +1,8 @@
 bsd/
 bed/
+*.sh
 falhas.txt
+
 
 # Prerequisites
 *.d
