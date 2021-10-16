@@ -46,8 +46,10 @@ void * loc_get_moradia (void * loc) {
 void loc_set_moradia (void * loc, void * mor) {
 	if(loc != NULL)
 		((aluguel*)loc)->moradia = mor;
-	loc_set_disponibilidade(loc,(((moradia_get_cpf == NULL))?(DISP):(LOCADA)));	
-	moradia_set_loc(mor,loc);
+	if(moradia_get_loc(mor) != loc)
+		moradia_set_loc(mor,loc);	
+	loc_set_disponibilidade(loc,(((moradia_get_cpf(mor) == NULL))?(DISP):(LOCADA)));	
+	
 	
 }
 

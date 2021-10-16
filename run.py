@@ -67,8 +67,8 @@ try:
 			
 except KeyboardInterrupt:
 	pass
-print(time.time() - ti,'para %d testes [' %c,e,'falhas ]',file=sys.stderr)		
-for f_e in falhou_em:	print(*f_e,file=sys.stderr)
+print(time.time() - ti,'para %d testes [' %c, str(e) * (e != len(falhou_em)),len(falhou_em),'falhas ]',file=sys.stderr)		
+for f_e in falhou_em:	print(*f_e, file=sys.stderr)
 
 c = 0
 for dirpath, dirnames, filenames in os.walk(bsd):

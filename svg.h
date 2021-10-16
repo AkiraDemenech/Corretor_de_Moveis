@@ -9,8 +9,8 @@ void svg_comment (void * arq, char * text);
 void svg_comment_open (void *svg);
 void svg_comment_close (void *svg);
 
-void svg_text (void * arq, char * text, char * cor, float x, float y);
-void svg_text_open (void *svg, char * color, float x, float y);
+void svg_text (void * arq, char * text, char * cor, float tam, float x, float y);
+void svg_text_open (void *svg, char * color, float size, float x, float y);
 void svg_text_close (void *svg);
 
 void svg_rect (void * arq, char * id, char * cp, char * cc, char * esp, float x, float y, float w, float h);

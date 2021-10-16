@@ -2,6 +2,7 @@
 #include "quadra.h"
 #include"pessoas.h"
 #include"moradias.h"
+#include"loc.h"
 
 
 typedef struct pes {
@@ -78,6 +79,8 @@ void * new_moradia (int num, char face, char * compl, char * cep, char * cpf) {
 void moradia_set_loc (void * m, void * l) {
 	if(m != NULL)
 		((moradia*)m)->loc = l;
+	if(loc_get_moradia(l) != m)	
+		loc_set_moradia(l, m);
 }
 
 void * moradia_get_loc (void * m) {
@@ -115,6 +118,7 @@ int moradia_get_num (void * m) {
 void moradia_set_cpf (void * m, char * cpf) {
 	if(m != NULL)
 		((moradia*)m)->cpf = cpf;	
+	loc_set_moradia(moradia_get_loc(m),m); // recarregando indiretamente a disponibilidade	
 }
 void moradia_set_cep (void * m, char * cep) {
 	if(m != NULL)

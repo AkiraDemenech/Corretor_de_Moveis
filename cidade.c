@@ -60,8 +60,9 @@ int arv_get_quadras_em (void * avl_in, void * list_out, float xi, float yi, floa
 	int c, busca = 0;	
 	while(avl_in != NULL && arv_get_max(avl_in) >= xi && arv_get_min(avl_in) <= xf) {				
 		busca++;	
-		if(arv_get_chave(avl_in) <= xf) {
-			if(arv_get_chave(avl_in) >= xi) {
+	//	printf("\n%d\t%f\t",busca,arv_get_chave(avl_in));
+		if(arv_get_chave(avl_in) >= xi) {			
+			if(arv_get_chave(avl_in) <= xf) {				
 			//	if(list_out == NULL)
 			//		list_out = new_list(0);
 				c = list_get_len(arv_get_valor(avl_in));
@@ -70,16 +71,17 @@ int arv_get_quadras_em (void * avl_in, void * list_out, float xi, float yi, floa
 					q = li_get_valor(list_get(arv_get_valor(avl_in), c));
 					if(q != NULL && quadra_get_y(q) >= yi && quadra_get_y(q) + quadra_get_h(q) <= yf && quadra_get_x(q) + quadra_get_w(q) <= xf && quadra_get_x(q) >= xi) 
 						list_add(list_out, q);
-				}			
-				if(arv_get_chave(avl_in) > xi)
-					busca += arv_get_quadras_em(arv_get_esq(avl_in), list_out, xi, yi, xf, yf);
+				//	printf("%s ",quadra_get_cep(q));	
+				}							
 			}				
-			if(arv_get_chave(avl_in) < xf) {
-				avl_in = arv_get_dir(avl_in);
-			//	arv_get_quadras_em(arv_get_dir(avl_in), list_out, xi, yi, xf, yf);	
-				continue;
-			}
-		}  
+		//	if(arv_get_chave(avl_in) > xi) // muito improvável que ele seja exatamente igual, e mesmo se for, mínimo e máximo do filho esquerdo (menor) vão excluir imediatamente
+			busca += arv_get_quadras_em(arv_get_esq(avl_in), list_out, xi, yi, xf, yf);  										
+		}
+		if(arv_get_chave(avl_in) < xf) {
+			avl_in = arv_get_dir(avl_in);
+		//	arv_get_quadras_em(arv_get_dir(avl_in), list_out, xi, yi, xf, yf);		
+			continue;
+		}	
 		break;
 	}
 	
@@ -94,8 +96,10 @@ void quadras_svg (void * img, void * arvore) {
 		while(c > 0) {
 			c--;
 			q = li_get_valor(list_get(arv_get_valor(arvore),c));
-			if(q != NULL)
+			if(q != NULL) {
 				svg_rect(img,quadra_get_cep(q),quadra_get_fill(q),quadra_get_strk(q),quadra_get_esp(q),quadra_get_x(q),quadra_get_y(q),quadra_get_w(q),quadra_get_h(q));
+			//	printf(" Quadra %s\t%s %s %s\t(%f %f)\t%fx%f\n",quadra_get_cep(q),quadra_get_fill(q),quadra_get_strk(q),quadra_get_esp(q),quadra_get_x(q),quadra_get_y(q),quadra_get_w(q),quadra_get_h(q));
+			}	
 		}
 		arvore = arv_get_dir(arvore);
 	}
@@ -364,7 +368,7 @@ void * cidade_get_moradias_em (void * cid, float x, float y, float w, float h) {
 }
 
 void * cidade_get_quadras_em (void * cid, float x, float y, float w, float h) {	
-	printf("Área de busca:\t%f\n",h*w);
+	printf("Área de busca:\t%f \t[(%f %f) (%f %f)]\n",h*w,x,y,x+w,y+h);
 	void * quadras = new_list(0);
 	printf("%d fileiras de quadras plausíveis.\n",arv_get_quadras_em(cidade_get_quadras_avl(cid),quadras,x,y,x+w,y+h));
 	return quadras;
