@@ -8,14 +8,12 @@ dot = 'DOT'
 
 progr = 't1'
 
-arquivos = set()
+
 comandos = {}
-for c in 'del m? dm? mud oloc oloc? loc loc? dloc hom mul dmpt catac'.split():
-	com = 'com-%s.sh' %(c.replace('?','_'))
-	arq = open(com,'w')
-	arquivos.add(com)
-	comandos[c.lower()] = arq
-	print('#!bin/bash\necho',c,file=arq) 	
+for c in 'del m? dm? mud oloc oloc? loc loc? dloc hom mul dmpt catac'.split():	
+	com = open('com-%s.sh' %(c.replace('?','_')),'w',encoding='utf8')	
+	comandos[c.lower()] = com
+	print('#!/bin/bash\necho',c,file=com) 	
 	
 	
 
@@ -60,6 +58,6 @@ except KeyboardInterrupt:
 	print('interrompido')
 print(time.time() - ti, 'para', c, 'testes')		
 for c in comandos:
-	comandos[c].close() 
-for c in arquivos:	
-	print(os.system('chmod +x ' + c), c)
+	print('\necho',comandos[c].name,c,'concluído',file=comandos[c])
+	comandos[c].close() 	
+	print(os.system('chmod +x ' + comandos[c].name), comandos[c].name, c)
