@@ -188,6 +188,7 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 	} else fprintf(svg_out,"<svg>%s \n",svg_parcial);	
 	if(txt_out == NULL)	
 		printf(" Não foi possível criar o arquivo %s\n",txt);
+	else fprintf(txt_out,"202000560125\tGuilherme Akira Demenech Mori \n");	
 	
 	unsigned int total = 0;
 	unsigned int exec = 0;
@@ -266,8 +267,7 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 						if(moradia_get_loc(b) != NULL) {
 							printf(" Moradia %s/%c/%d\t%s é alugada por %s ",moradia_get_cep(b),moradia_get_face(b),moradia_get_num(b),moradia_get_compl(b),moradia_get_cpf(b));
 							if(a != NULL)
-								printf("%s\t%c\t%s %s",pessoa_datanas(a),pessoa_gen(a),pessoa_nome(a),pessoa_sobrenome(a));							
-							// e se for alugada? o que fazemos? encerramos o contrato? mudamos o contrato também?							
+								printf("%s\t%c\t%s %s",pessoa_datanas(a),pessoa_gen(a),pessoa_nome(a),pessoa_sobrenome(a));																					
 							hash_del(cidade_get_moradias_cpf(cid),cpf);							
 							moradia_set_cpf(b,NULL);							
 							printf("\t%c\n",loc_get_disponibilidade(moradia_get_loc(b)));
@@ -275,14 +275,7 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 						} else {
 							cidade_del_moradia_cpf(cid, cpf);						
 							fprintf(txt_out,"Endereço novo");							
-						}	
-					/*	void * l = hash_get(cidade_get_moradias_cep(cid),moradia_get_cep(b));
-						int d = list_get_len(l);
-						while(d > 0) {
-							d--;
-							if(li_get_valor(list_get(l,d)) == b || (moradia_get_num(li_get_valor(list_get(l,d))) == moradia_get_num(b) && moradia_get_face(li_get_valor(list_get(l,d))) == moradia_get_face(b) && 0 == compare(moradia_get_compl(b),moradia_get_compl(li_get_valor(list_get(l,d))))))
-								list_del(l,d);
-						} //*/						
+						}												
 					} 
 					if(b == NULL) {
 						fprintf(txt_out, "Novo endereço");						
@@ -545,8 +538,6 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 										printf("%c",loc_get_disponibilidade(moradia_get_loc(r)));
 								}	
 								hash_del(cidade_get_moradias_cpf(cid), cpf);
-							//	loc_set_disponibilidade(moradia_get_loc(r), DISP);
-							//	moradia_set_cpf(r,NULL); 
 								printf("\n");
 							} 
 							if(moradia_get_cpf(loc_get_moradia(b)) != NULL) {
@@ -633,11 +624,6 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 					moradia_set_loc(r,new_loc(v,u,sfx,r));// criar LOC
 					cidade_set_aluguel(cid,moradia_get_loc(r));
 					registrar_aluguel(moradia_get_loc(r),txt_out);
-
-
-
-					
-					
 					qtd_oloc++;
 					exec++;
 				}								
