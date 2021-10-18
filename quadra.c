@@ -12,16 +12,16 @@ typedef struct quad {
 
 void * new_quadra (float x, float y, float w, float h, char * esp, char * cc, char * cp, char * cep) {
 	quadra * q = (quadra *) malloc(sizeof(quadra));
-	q->x = x;
-	q->y = y;
-	q->h = h;
-	q->w = w;
+	quadra_set_x(q,x);//q->x = x;
+	quadra_set_y(q,y);//q->y = y;
+	quadra_set_h(q,h);//q->h = h;
+	quadra_set_w(q,w);//q->w = w;
 
-	q->fill = cp;
-	q->strk = cc;
-	q->esp = esp;
+	quadra_set_fill(q,cp);// q->fill = cp;
+	quadra_set_strk(q,cc);// q->strk = cc;
+	quadra_set_esp(q,esp);// q->esp = esp;
 	
-	q->cep = cep;
+	quadra_set_cep(q,cep); //q->cep = cep;
 
 	return q;
 

@@ -1,9 +1,55 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include "quadra.h"
 #include"pessoas.h"
 #include"moradias.h"
 #include"loc.h"
 
+char * cpf_validacao (int cpf_val) {
+	switch(cpf_val) {
+		case 0:
+			return "Válido";
+
+		case -1:	
+			return "Inválido:\tDV1 incorreto";
+
+		case -2:	
+			return "Inválido:\tDV2 incorreto";		
+
+		case -3:	
+			return NULL;
+	}
+	if(cpf_val < 0)
+		return "Inválido";
+	
+	char * m = calloc(40, sizeof(char));
+	sprintf(m,"Inválido: falta%s %02d dígito%s",(cpf_val == 1)?"":"m",cpf_val,(cpf_val == 1)?"":"s");
+	return m;
+}
+
+
+int cpf_validar (char * cpf) {
+	if(cpf == NULL)
+		return -3;
+	int c, d, dv1 = 0, dv2 = 0, v, m = 11;	
+	for(c=0;cpf[c]!='\0';c++) 	
+		if(cpf[c] >= '0' && cpf[c] <= '9') {
+			d = cpf[c] - '0';			
+			v = d * m;			
+			m--;			
+			if(m == 1) {
+				if(((dv1 * 10) % 11) % 10 != d)
+					return -1;
+			} else if (m == 0) {
+				if(((dv2 * 10) % 11) % 10 != d)
+					return -2;
+				break;	
+			} 			
+			dv1 += v - d;			
+			dv2 += v;
+		}
+	return m;			
+}
 
 typedef struct pes {
 	char gen;
@@ -22,6 +68,8 @@ void * new_pessoa (char sexo, char * cpf, char * nasc, char * nome, char * sobre
 	p->gen = sexo;
 	copy(nasc,p->nasc);
 	copy(cpf,p->cpf);
+/*	int c = cpf_validar(p->cpf);
+	if(c != 0)	printf("\tCPF %s %s\n",p->cpf,cpf_validacao(c)); // */
 	return p;
 }
 

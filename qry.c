@@ -185,14 +185,14 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 	if(svg_out == NULL) {
 		printf(" Não foi possível criar o arquivo %s\n",svg_parcial);
 		svg_out = fopen(svg,"w");
-	} else fprintf(svg_out,"<svg>Parcial \n");	
+	} else fprintf(svg_out,"<svg>%s \n",svg_parcial);	
 	if(txt_out == NULL)	
 		printf(" Não foi possível criar o arquivo %s\n",txt);
 	
 	unsigned int total = 0;
 	unsigned int exec = 0;
 	unsigned int qtd_catac = 0, qtd_del = 0, qtd_dm = 0, qtd_dmpt = 0, qtd_dloc = 0, qtd_loc = 0, qtd_loci = 0, qtd_oloc = 0, qtd_oloci = 0, qtd_hom = 0, qtd_mul = 0, qtd_mud = 0, qtd_m = 0;
-	int id_tam = 3*CEP_TAM;
+	int id_tam = 3*CEP_TAM, linha = 0;
 	int c,com_tam = 2*COM_TAM;
 	float s,t,u,v;
 	void *r;
@@ -249,7 +249,7 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 					s = -1;					
 					loc_set_disponibilidade(moradia_get_loc(b),DISP);
 					registrar_pessoa(a, txt_out);
-					fprintf(txt_out, "CPF:\t%s\n", cpf);					
+					fprintf(txt_out, "CPF:\t%s\t(%s)\n", cpf, cpf_validacao(cpf_validar(cpf)));					
 					if(a == NULL) printf("\tCPF %s não encontrado!\n", cpf);					
 					if(b != NULL) {
 						fprintf(txt_out,"\nEndereço antigo:\n");
@@ -358,8 +358,7 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 						printf("\n%u\tdloc\t%s\n",exec,sfx);
 						m = NULL;
 						a = NULL;
-						b = hash_get(cidade_get_alugueis(cid),sfx);
-						loc_set_disponibilidade(b,ENCERR);
+						b = hash_get(cidade_get_alugueis(cid),sfx);						
 						if(b == NULL) 
 							fprintf(txt_out,"Locação ID %s não encontrada.\n",sfx);
 						else {								
@@ -373,7 +372,7 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 								a = cidade_get_pessoa(cid,m);
 								hash_del(cidade_get_moradias_cpf(cid),m);
 								registrar_pessoa(a,txt_out);
-								fprintf(txt_out,"CPF:\t%s\n",m);								
+								fprintf(txt_out,"CPF:\t%s\t(%s)\n",m,cpf_validacao(cpf_validar(m)));								
 								printf("CPF %s",m);
 							}	
 							if(a == NULL)
@@ -384,21 +383,23 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 								printf("\tQuadra CEP %s não encontrada. Não foi possível encontrar as coordenadas de %s/%c/%d %s\n",moradia_get_cep(loc_get_moradia(b)),moradia_get_cep(loc_get_moradia(b)),moradia_get_face(loc_get_moradia(b)),moradia_get_num(loc_get_moradia(b)),moradia_get_compl(loc_get_moradia(b)));
 							else {
 								t = moradia_get_x(loc_get_moradia(b),r);
-								svg_line(svg_out,"black",NULL,t,moradia_get_y(loc_get_moradia(b),r),t,0);
-								svg_text_open(svg_out,NULL,0,t,0);
+								svg_line(svg_out,"black",NULL,t,moradia_get_y(loc_get_moradia(b),r),t,linha);
+								svg_text_open(svg_out,NULL,0,t,linha);
 								registrar_pessoa(a,svg_out);
 								if(svg_out != NULL && moradia_get_cpf(loc_get_moradia(b)) != NULL) 
-									fprintf(svg_out,"CPF:\t%s\n",moradia_get_cpf(loc_get_moradia(b)));
+									fprintf(svg_out,"CPF:\t%s \n",moradia_get_cpf(loc_get_moradia(b)));
 								registrar_moradia(loc_get_moradia(b),svg_out);
 								registrar_aluguel(b,svg_out);
 								svg_text_close(svg_out);
+								linha -= 16;
 							}	
-						}								
-						moradia_set_cpf(loc_get_moradia(b),NULL);
+						}														
 						registrar_moradia(loc_get_moradia(b),txt_out);
 						registrar_aluguel(b,txt_out);
+						moradia_set_cpf(loc_get_moradia(b),NULL);
+						loc_set_disponibilidade(b,ENCERR);
 						if(loc_get_disponibilidade(b) == ENCERR)
-							fprintf(txt_out,"Encerrado\n");
+							fprintf(txt_out,"Encerrado.\n");
 						exec++;
 						qtd_dloc++;
 						break;
@@ -410,8 +411,9 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 						b = cidade_get_quadra_hash(cid, cep);
 						if(b != NULL) {
 							u = quadra_get_x(b) + (quadra_get_w(b)/2);
-							svg_text(svg_out,quadra_get_cep(b),NULL,0,u,0);
-							svg_line(svg_out,"Black",NULL,u,0,u,quadra_get_y(b) + (quadra_get_h(b)/2));							
+							svg_text(svg_out,quadra_get_cep(b),NULL,0,u,linha);
+							svg_line(svg_out, "Black", NULL, u, linha, u, quadra_get_y(b) + (quadra_get_h(b)/2));							
+							linha -= 18;
 						}
 						printf("%d moradias apagadas.\n",del(cid,cep,txt_out));						
 						exec++;
@@ -426,7 +428,7 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 							b = hash_get(cidade_get_moradias_cpf(cid),cpf);
 							a = hash_get(cidade_get_pessoas(cid),cpf);
 							registrar_pessoa(a, txt_out);
-							fprintf(txt_out,"CPF:\t%s\n",cpf);					
+							fprintf(txt_out,"CPF:\t%s\t(%s)\n",cpf,cpf_validacao(cpf_validar(cpf)));					
 							registrar_moradia(b,txt_out);
 							if(a == NULL) {
 								printf("\tCPF %s não encontrado!\n",cpf);
@@ -444,14 +446,15 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 									printf("\tQuadra CEP %s não encontrada. Não foi possível encontrar coordenadas para %s/%c/%d %s\n",moradia_get_cep(b),moradia_get_cep(b),moradia_get_face(b),moradia_get_num(b),moradia_get_compl(b));
 								else {	
 									t = moradia_get_x(b,r);
-									svg_line(svg_out,"black",NULL,t,moradia_get_y(b,r),t,0);
-									svg_text_open(svg_out,NULL,0,t,0);
+									svg_line(svg_out,"black",NULL,t,moradia_get_y(b,r),t,linha);
+									svg_text_open(svg_out,NULL,0,t,linha);
 									registrar_pessoa(a,svg_out);
 									if(svg_out != NULL)
-										fprintf(svg_out,"CPF:\t%s\n",moradia_get_cpf(b));
+										fprintf(svg_out,"CPF:\t%s \n",moradia_get_cpf(b));
 									registrar_moradia(b,svg_out);
 									registrar_aluguel(moradia_get_loc(b),svg_out);
 									svg_text_close(svg_out);
+									linha -= 15;
 								}
 							}	
 							registrar_aluguel(moradia_get_loc(b),txt_out);
@@ -499,15 +502,16 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 						if(moradia_get_cpf(loc_get_moradia(r)) != NULL) {
 							fprintf(txt_out,"CPF:\t%s\n",moradia_get_cpf(loc_get_moradia(r)));							
 							registrar_pessoa(cidade_get_pessoa(cid, moradia_get_cpf(loc_get_moradia(r))), txt_out);							
-							a = cidade_get_quadra_hash(cid,moradia_get_cep(loc_get_moradia(r)));
-							if(a == NULL)
-								printf("\tQuadra CEP %s não encontrada. Não foi possível encontrar coordenadas para %s/%c/%d %s\n",moradia_get_cep(loc_get_moradia(r)),moradia_get_cep(loc_get_moradia(r)),moradia_get_face(loc_get_moradia(r)),moradia_get_num(loc_get_moradia(r)),moradia_get_compl(loc_get_moradia(r)));
-							else {	
-								svg_text_open(svg_out,NULL,27,moradia_get_x(loc_get_moradia(r),a),moradia_get_y(loc_get_moradia(r),a));
-								if(svg_out != NULL) fprintf(svg_out,"%c",loc_get_disponibilidade(r));									
-								svg_text_close(svg_out);
-							}	
 						}
+						a = cidade_get_quadra_hash(cid,moradia_get_cep(loc_get_moradia(r)));
+						if(a == NULL)
+							printf("\tQuadra CEP %s não encontrada. Não foi possível encontrar coordenadas para %s/%c/%d %s\n",moradia_get_cep(loc_get_moradia(r)),moradia_get_cep(loc_get_moradia(r)),moradia_get_face(loc_get_moradia(r)),moradia_get_num(loc_get_moradia(r)),moradia_get_compl(loc_get_moradia(r)));
+						else {	
+							svg_text_open(svg_out,NULL,27,moradia_get_x(loc_get_moradia(r),a),moradia_get_y(loc_get_moradia(r),a));
+							if(svg_out != NULL) fprintf(svg_out,"%c",loc_get_disponibilidade(r));									
+							svg_text_close(svg_out);
+						}	
+						
 						
 					}	
 					qtd_loci++;
@@ -558,14 +562,15 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 								printf("\tQuadra CEP %s não encontrada. Não foi possível encontrar as coordenadas de %s/%c/%d %s\n",moradia_get_cep(loc_get_moradia(b)),moradia_get_cep(loc_get_moradia(b)),moradia_get_face(loc_get_moradia(b)),moradia_get_num(loc_get_moradia(b)),moradia_get_compl(loc_get_moradia(b)));
 							else {
 								t = moradia_get_x(loc_get_moradia(b),r);
-								svg_line(svg_out,"black",NULL,t,moradia_get_y(loc_get_moradia(b),r),t,0);
-								svg_text_open(svg_out,NULL,0,t,0);
+								svg_line(svg_out,"black",NULL,t,moradia_get_y(loc_get_moradia(b),r),t,linha);
+								svg_text_open(svg_out,NULL,0,t,linha);
 								registrar_pessoa(a,svg_out);
 								if(svg_out != NULL)
-									fprintf(svg_out,"CPF:\t%s\n",moradia_get_cpf(loc_get_moradia(b)));
+									fprintf(svg_out,"CPF:\t%s \n",moradia_get_cpf(loc_get_moradia(b)));
 								registrar_moradia(loc_get_moradia(b),svg_out);
 								registrar_aluguel(b,svg_out);
 								svg_text_close(svg_out);
+								linha -= 17;
 							}
 							fprintf(txt_out,"CPF:\t%s\n",moradia_get_cpf(loc_get_moradia(b)));							
 						} else printf("\tMoradia não identificada.\n");	
@@ -593,7 +598,7 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 							registrar_moradia(li_get_valor(list_get(r, c)), txt_out);							
 							b = cidade_get_quadra_hash(cid, moradia_get_cep(li_get_valor(list_get(r, c))));
 							if(b != NULL) {								
-								svg_text_open(svg_out,"red",27,moradia_get_x(li_get_valor(list_get(r, c)), b),moradia_get_y(li_get_valor(list_get(r, c)), b));
+								svg_text_open(svg_out,NULL,27,moradia_get_x(li_get_valor(list_get(r, c)), b),moradia_get_y(li_get_valor(list_get(r, c)), b));
 								if(svg_out != NULL) fprintf(svg_out, "%c", loc_get_disponibilidade(moradia_get_loc(li_get_valor(list_get(r, c)))));
 								svg_text_close(svg_out);
 							} else printf("\tQuadra %s ausente.\n",moradia_get_cep(li_get_valor(list_get(r,c))));								

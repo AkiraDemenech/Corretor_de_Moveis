@@ -21,15 +21,15 @@ int busca_bin_quadra (void * lista, float y) {
 	if(lista == NULL)
 		return -2;
 
-	int i = 0, f = list_get_len(lista) - 1;	
+	int i = 0, f = list_get_len(lista);	
 	int c;
 	float t;
-	while(i < f) {
+	while(i <= f) {
 		c = (i + f) / 2;
 		t = quadra_get_y(li_get_valor(list_get(lista,c)));		
-		if(t > y)
+		if(y > t)
 			i = c + 1;
-		else if(t < y)
+		else if(y < t)
 			f = c - 1;
 		else return c;			
 	}		
@@ -126,7 +126,7 @@ void * cidade_geo (char * geo) {
 		return NULL;
 
 	void * b;
-	void * c = new_cidade("Bitnópolis",16);	
+	void * c = new_cidade(geo,16);	
 	FILE * g = fopen(geo,"r");
 	if(g == NULL) {
 		printf("Arquivo \"%s\" não encontrado.\n",geo);
@@ -425,7 +425,7 @@ void cidade_del_quadra_avl (void * cid, float x, float y) {
 	void * a = arv_get(cidade_get_quadras_avl(cid), x);
 	int b = busca_bin_quadra(arv_get_valor(a), y);
 	if(b < 0) {		
-		printf("\n Quadra em (%f %f) não encontrada na busca binária %d.\n",x,y,b);
+		printf("\n Quadra em (%f %f) não encontrada na busca binária %d.\n",x,y,b);		
 		int c;
 		for(c = 0; c < list_get_len(arv_get_valor(a)); c++)
 			if(quadra_get_y(li_get_valor(list_get(arv_get_valor(a),c))) == y) {
@@ -435,16 +435,19 @@ void cidade_del_quadra_avl (void * cid, float x, float y) {
 				printf("%s em %d]\n",quadra_get_cep(li_get_valor(list_get(arv_get_valor(a),c))),c);	
 				b = c;
 			} else printf(" %d\t%f\t%s\n",c,quadra_get_y(li_get_valor(list_get(arv_get_valor(a),c))),quadra_get_cep(li_get_valor(list_get(arv_get_valor(a),c))));		 						 
-	}	
+	}  	
 	if(b >= 0) {		
-		printf("Apagando quadra %s (%f %f)\n",quadra_get_cep(li_get_valor(list_get(arv_get_valor(a),b))),quadra_get_x(li_get_valor(list_get(arv_get_valor(a),b))),quadra_get_y(li_get_valor(list_get(arv_get_valor(a),b))));
+	//	printf("Apagando quadra %s (%f %f)\n",quadra_get_cep(li_get_valor(list_get(arv_get_valor(a),b))),quadra_get_x(li_get_valor(list_get(arv_get_valor(a),b))),quadra_get_y(li_get_valor(list_get(arv_get_valor(a),b))));
 		hash_del(cidade_get_quadras_hash(cid),quadra_get_cep(li_get_valor(list_get(arv_get_valor(a),b))));
 		list_del(arv_get_valor(a), b);
 		if(list_get_len(arv_get_valor(a)) <= 0) {
 			list_del_all(arv_get_valor(a));
-			avl_del(cidade_get_quadras_avl(cid), x);
-		}				
-	} else printf("\tE continua desaparecida!\n");
+			a = avl_del(cidade_get_quadras_avl(cid), x);
+			if(cid != NULL) 
+				((cidade *) cid)->quadras_avl = a;
+			printf("Removido nó %f da árvore AVL\n", x);	
+		}						
+	} else printf("\tE continua desaparecida!\n");	 
 }
 
 void cidade_del_quadra_hash (void * cid, char * cep) {
@@ -526,9 +529,14 @@ void cidade_del_moradia_cep (void * cid, char * cep) {
 }
 
 void cidade_del_moradias (void * cid) {
-	int c;
-	for(c = 0; c < hash_get_chaves_len(cidade_get_moradias_cep(cid)); c++) 
-		list_del_all(hash_get(cidade_get_moradias_cep(cid), hash_get_chave(cidade_get_moradias_cep(cid), c)));	
+	void * l;
+	int c, d;
+	for(c = 0; c < hash_get_chaves_len(cidade_get_moradias_cep(cid)); c++) {
+		l = hash_get(cidade_get_moradias_cep(cid), hash_get_chave(cidade_get_moradias_cep(cid), c));
+		for(d = 0; d < list_get_len(l); d++)
+			free(li_get_valor(list_get(l, d)));
+		list_del_all(l);	
+	}	
 	hash_del_all(cidade_get_moradias_cep(cid));
 	hash_del_all(cidade_get_moradias_cpf(cid));
 }
@@ -568,6 +576,9 @@ void cidade_del_pessoa (void * cid, char * cpf) {
 
 void cidade_del_pessoas (void * cid) {
 	void * p = cidade_get_pessoas(cid);
+	int c;
+	for(c = 0; c < hash_get_chaves_len(p); c++) 
+		free(hash_get(p, hash_get_chave(p, c)));	
 	hash_del_all(p);
 	if(cid != NULL)
 		((cidade*)cid)->pessoas_hash = NULL;
