@@ -14,7 +14,34 @@ for dp,d,a in os.walk('./BED'):
 		arquivos[dp].append(a)	
 
 #	'''
+e = c = 0
 
+falhas = None
+falhou_em = []
+if len(sys.argv) > 1:
+	for f in sys.argv[1:]:
+		print('\n\t',f)
+		falhou_em.clear()
+		try:			
+			for ln in open(f,'r',encoding='utf8').readlines():
+				if not ln[:ln.find('#')].isspace():
+					print(ln)
+					s = os.system(ln)
+					if s != 0:
+						print(s,c)
+						falhou_em.append((c,s,ln.__repr__()))
+						e += 1
+					c += 1
+		except FileNotFoundError:			
+			print('\t',f,'não encontrado!')
+		print('\t',e,'falhas de',c,'linhas rodadas.')			
+		for l in falhou_em:
+			print(*l)	
+	
+				
+
+
+	exit(0)
 
 
 bed = 'BED'	#str(input("Informe o BED (sem barra no final): "))
@@ -27,10 +54,6 @@ progr = 't1'
 
 geos = list()
 
-e = c = 0
-
-falhas = None
-falhou_em = []
 #
 
 ti = time.time()
@@ -75,7 +98,7 @@ for dirpath, dirnames, filenames in os.walk(bsd):
 		for filename in filenames:
 			if '.dot' in filename:
 				s = os.system('dot -T svg %s/%s -o %s/%s/%s.svg ' %(bsd,filename,bsd,dot,filename))
-				print(filename,'\t',s)				
-				c += not s 
+				print(filename,'\t',s,file=sys.stderr)				
+				c += not s
 		break
-print(c,'árvores convertidas para SVG')		
+print(c,'árvores convertidas para SVG',file=sys.stderr)		

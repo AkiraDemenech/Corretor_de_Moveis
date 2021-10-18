@@ -538,12 +538,16 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 						if(loc_get_moradia(b) != NULL) {
 							r = hash_get(cidade_get_moradias_cpf(cid), cpf);
 							if(r != NULL) {
-								printf(" CPF %s já mora em %s/%c/%d\t%s\n",cpf,moradia_get_cep(r),moradia_get_face(r),moradia_get_num(r),moradia_get_compl(r));
-								if(moradia_get_loc(r) == NULL) 
-									cidade_del_moradia_cpf(cid,cpf);
-								else hash_del(cidade_get_moradias_cpf(cid), cpf);
-								loc_set_disponibilidade(moradia_get_loc(r), DISP);
-								moradia_set_cpf(r,NULL);
+								printf(" CPF %s já mora em %s/%c/%d\t%s\t",cpf,moradia_get_cep(r),moradia_get_face(r),moradia_get_num(r),moradia_get_compl(r));
+								if(moradia_get_loc(r) != NULL) {									
+									printf("%s [%f m² por R$%f mensais]\t",loc_id(moradia_get_loc(r)),loc_get_area(moradia_get_loc(r)),loc_get_valor(moradia_get_loc(r)));
+									if(loc_get_disponibilidade(moradia_get_loc(r)) != LOCADA)
+										printf("%c",loc_get_disponibilidade(moradia_get_loc(r)));
+								}	
+								hash_del(cidade_get_moradias_cpf(cid), cpf);
+							//	loc_set_disponibilidade(moradia_get_loc(r), DISP);
+							//	moradia_set_cpf(r,NULL); 
+								printf("\n");
 							} 
 							if(moradia_get_cpf(loc_get_moradia(b)) != NULL) {
 								printf(" Moradia %s/%c/%d\t%s já é alugada por %s ",moradia_get_cep(loc_get_moradia(b)),moradia_get_face(loc_get_moradia(b)),moradia_get_num(loc_get_moradia(b)),moradia_get_compl(loc_get_moradia(b)),moradia_get_cpf(loc_get_moradia(b)));
