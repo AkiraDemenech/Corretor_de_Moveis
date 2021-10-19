@@ -354,17 +354,16 @@ void * cidade_get_alugueis (void * cid) {
 
 void * cidade_get_moradias_em (void * cid, float x, float y, float w, float h) {
 	void * q = cidade_get_quadras_em(cid, x, y, w, h);
-	void * m = new_list(0);
 	void * t;
 	int c, b;	
-	for(c = 0; c < list_get_len(q); c++) {		
-		t = hash_get(cidade_get_moradias_cep(cid), quadra_get_cep(li_get_valor(list_get(q, c))));
-		for(b = 0; b < list_get_len(t); b++) 
-			list_insert(m,li_get_valor(list_get(t,b)));
+	for(b = list_get_len(q) - 1; b >= 0; b--) {		
+		t = hash_get(cidade_get_moradias_cep(cid), quadra_get_cep(li_get_valor(list_get(q, b))));
+		list_del(q, b);
+		for(c = 0; c < list_get_len(t); c++) 
+			list_set(q,b,li_get_valor(list_get(t,c)));
 	}
 	printf("%d quadras inteiramente na área.\n",list_get_len(q));
-	list_del_all(q);
-	return m;
+	return q;
 }
 
 void * cidade_get_quadras_em (void * cid, float x, float y, float w, float h) {	
