@@ -38,7 +38,7 @@ pm:
 	$(comp) $(opts) -c loc.c -o aluguel.o
 
 c:	
-	$(comp) $(opts) t1.c quadra.o aluguel.o pm.o cidade.o arv.o arq.o qry.o hash.o list.o svg.o -o t1.out
+	$(comp) $(opts) t2.c quadra.o aluguel.o pm.o cidade.o arv.o arq.o qry.o hash.o list.o svg.o -o t2.out
 
 
 oh:
@@ -56,8 +56,8 @@ oh:
 t1:
 	make oh
 	make c
-	cp t1.out t1.o
-	cp t1.o t1
+	cp t2.out t2.o
+	cp t2.o t2
 	echo terminado!
 
 

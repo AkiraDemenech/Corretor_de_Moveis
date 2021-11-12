@@ -13,7 +13,7 @@ progr = 't1'
 
 comandos = {}
 for c in 'del m? dm? mud oloc oloc? loc loc? dloc hom mul dmpt catac'.split():	
-	com = open('1com-%s.sh' %(c.replace('?','_')),'w',encoding='utf8')	
+	com = open('com-%s.sh' %(c.replace('?','_')),'w',encoding='utf8')	
 	comandos[c.lower()] = com
 	print('#!/bin/bash\necho',c,file=com) 	
 	print('\n',file=com) 	
@@ -21,14 +21,14 @@ for c in 'del m? dm? mud oloc oloc? loc loc? dloc hom mul dmpt catac'.split():
 def coms (comb, ln, arquivos = comandos):	
 	while len(comb) > 1:	
 		if not comb in arquivos:
-			a = '%dcoms' %len(comb)
+			a = 'coms'
 			for c in comb:
 				a += '-' + c.replace('?','_')
 			arquivos[comb] = open(a + '.sh','w',encoding='utf8')
 		print(ln,file=arquivos[comb])	
 		for a in range(len(comb) - 1):
 			coms(comb[:a] + comb[a + 1:], ln, arquivos)
-		comb = comb[:-1] 	
+		comb = comb[:-1] + comb[len(comb):]	
 
 
 geos = list()
