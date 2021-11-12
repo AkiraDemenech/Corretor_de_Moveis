@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include<stdlib.h>
-#include"cidade.h"
+#include"mapa.h"
 #include"qry.h"
 #include"arq.h"
 
@@ -11,7 +11,7 @@ int main (int argc, char *argv[]) {
 	char* bed = NULL;// -e
 	char* geo = NULL;//	-f
 	char* qry = NULL;//	-q
-	char* pm = NULL; //	-pm
+	char* via = NULL;//	-v
 
 	char * u = NULL;
 
@@ -41,9 +41,9 @@ int main (int argc, char *argv[]) {
 					qry = u;	
 					continue;
 
-				case 'p':	
-					pm = u;					
-					printf("\nPM:\t%s",u);
+				case 'v':	
+					via = u;					
+					printf("\nVIA:\t%s",u);
 					continue;
 			}
 
@@ -65,15 +65,15 @@ int main (int argc, char *argv[]) {
 
 	char * geo_completo = arq_nome_completo(bed,geo);
 	char * qry_completo = qry;	
-	char * pm_completo = pm;
-	if(pm != NULL)
-		pm_completo = arq_nome_completo(bed, pm);
+	char * via_completo = via;
+	if(via != NULL)
+		via_completo = arq_nome_completo(bed, via);
 	if(qry != NULL)
 		qry_completo = arq_nome_completo(bed,qry);	
 
 	
 
-	printf("BED + PM:\t%s\n", pm_completo);
+	printf("BED + VIA:\t%s\n", via_completo);
 	printf("BED + GEO:\t%s\n",geo_completo);
 	printf("BED + QRY:\t%s\n",qry_completo);
 
@@ -95,17 +95,17 @@ int main (int argc, char *argv[]) {
 
 	printf("\n");
 
+	if(via_completo != NULL)
+	{
+		printf("Lendo %s:\n",via_completo);
+		cidade_vias(cidade,via_completo); // ler VIAS
+		printf("Vias lidas com sucesso.\n");			
+	}
+		
+
 	if(qry_completo != NULL)
 	{
-		if(pm_completo != NULL)
-		{
-			printf("Lendo %s:\n",pm_completo);
-			cidade_pm(cidade,pm_completo); // ler PM
-			printf("Pessoas e Moradias lidas com sucesso.\n");			
-		}
-		printf("\n");
-		
-		printf("Iniciando leitura de %s\n",qry_completo);
+		printf("\nIniciando leitura de %s\n",qry_completo);
 		cidade_qry(cidade,qry_completo,arq_nome_concat(0,'.','.',arq,"svg"),arq_nome_concat(0,'.','.',arq,"txt"));// rodar QRY
 		printf("Finalizadas as consultas.\n");
 	}	
@@ -129,8 +129,8 @@ int main (int argc, char *argv[]) {
 	else opt = ',';	
 	printf("%c",opt);
 
-	if(pm_completo != pm)
-		free(pm_completo);
+	if(via_completo != via)
+		free(via_completo);
 	else opt = ';'; 	
 	printf("%c",opt);
 

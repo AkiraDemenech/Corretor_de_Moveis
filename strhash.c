@@ -1,4 +1,5 @@
 #include<stdlib.h>
+#include <stdio.h>
 #include"hash.h"
 #include"list.h"
 
@@ -69,11 +70,12 @@ void * hash_get (void * tabesp, char * chave) {
 void hash_set (void * tabesp, char * chave, void * valor) {
 	if(tabesp == NULL) 
 		return;	
-//	if(pos < 0)	pos = -pos;
+
 		
 	void ** l = hash_v_get_list(tabesp,hash(chave)%hash_get_len(tabesp));
 	if(*l == NULL)
 		*l = new_list(0);
+	else printf("\tColisão! %s já existente [%d]\n",chave,list_get_len(*l));	
 	list_insert(((tabela*)tabesp)->chaves,chave);
 	list_insert(*l,valor);	
 	li_set_chave(list_get_atual(*l),chave);
