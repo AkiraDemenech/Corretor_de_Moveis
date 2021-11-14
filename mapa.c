@@ -18,43 +18,49 @@ void * dijkstra (void * grafo, float cv) {
 	void * v = new_via(vert_id(grafo),NULL,NULL);
 	void * u;
 	float p = c;
-	via_set_para(v,grafo);
+	// começamos com a raiz do grafo (origem dos caminhos)
+	via_set_para(v,grafo); // o caminho para a origem 
+	via_set_de(v, NULL); // ele não veio de lugar nenhum, se viesse, aqui estaria o caminho anterior
 	via_set_cmp(v,p);
 	via_set_vm(v, c);
 	list_set(fila,c,v);
 	while(c < list_get_len(fila)) {
+		// enquanto houverem vértices na lista para verificar
 		v = li_get_valor(list_get(fila, c));
 		grafo = via_get_para(v);
-		for(i = 0; i < list_get_len(vert_get_vias(grafo)); i++)
-			if(via_get_para(li_get_valor(list_get(vert_get_vias(grafo), i))) != grafo && li_get_valor(list_get(vert_get_vias(grafo),i)) != NULL) { 				
-				p = via_get_cmp(li_get_valor(list_get(vert_get_vias(grafo),i)))/((cv == 0)?(1):(cv*via_get_vm(li_get_valor(list_get(vert_get_vias(grafo),i)))));// + via_get_cmp(v);
+		// guardamos o caminho atual e seu vértice de destino (origem para os próximos caminhos verificados)
+		for(i = 0; i < list_get_len(vert_get_vias(grafo)); i++) // para todas as vias deste vértice
+			if(via_get_para(li_get_valor(list_get(vert_get_vias(grafo), i))) != grafo && li_get_valor(list_get(vert_get_vias(grafo),i)) != NULL) { // que partirem dele 				
+				p = via_get_cmp(li_get_valor(list_get(vert_get_vias(grafo),i)))/((cv <= 0)?(1):(cv*via_get_vm(li_get_valor(list_get(vert_get_vias(grafo),i)))));// + via_get_cmp(v);
 				u = NULL;
+				// pegamos o comprimento ou tempo dessa via 
+				// e procuramos se essa via leva a algum destino já armazenado
 				for(j = 0; j < list_get_len(fila); j++) 
 					if(via_get_para(li_get_valor(list_get(vert_get_vias(grafo),i))) == via_get_para(li_get_valor(list_get(fila,j)))) {
 						u = li_get_valor(list_get(fila, j));
-						if(via_get_vm(u) > p + via_get_cmp(v)) 														
+						if(via_get_vm(u) > p + via_get_vm(v)) // removemos caso ele deva ser atualizado e reposicionado 														
 							list_del(fila, j);
 						else j = -1;
 						break;
 					}					 				
+				// se o destino já tiver sido encontrado antes, iremos recolocá-lo na fila (somente se tivermos encontrado caminho melhor para ele)	
 				if(u == NULL) {	
 					u = new_via(vert_id(via_get_para(li_get_valor(list_get(vert_get_vias(grafo), i)))), NULL, NULL);
 					via_set_para(u, via_get_para(li_get_valor(list_get(vert_get_vias(grafo), i))));										
+					// criamos este novo caminho, caso esse destino já não fosse conhecido antes.
 				}	
-				if(j >= 0) {
+				if(j > c) {
+					// caso devamos inserir o caminho (talvez novamente), 
+					// atualizamos ou inserimos seus dados
 					via_set_de(u, v);
 					via_set_vm(u, p + via_get_cmp(v));
-					via_set_cmp(u, p);
-					while(j > 0 && via_get_vm()) 
+					via_set_cmp(u, via_get_cmp(li_get_valor(list_get(vert_get_vias(grafo), i)))); // o comprimento percorrido nesse caminho é copiado
+					while(j > c && via_get_vm(li_get_valor(list_get(fila,j))) > via_get_vm(u)) // avança na fila à procura do último caminho menor ou igual a ele em peso
 						j--;
-						
-												
-							
-						
-					
-				}
-
-			}	
+					list_set(fila, j + 1, u); // e entra imediatamente atrás dele																															
+				} 
+			}
+		hash_set(caminhos,vert_id(grafo),v); // inserimos a origem e seus dados no mapeamento do algoritmo		
 		c++;
 	}
 	list_del_all(fila);
@@ -501,6 +507,7 @@ void cidade_del_all (void * cid) {
 	arv_del_all(cidade_get_pontos(cid));
 	arv_del_all(cidade_get_quadras_avl(cid));
 	hash_del_all(cidade_get_quadras_hash(cid));	
+	hash_del_all(cidade_get_vias(cid));
 	if(cid != NULL) 				
 		free(cid);	
 }

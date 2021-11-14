@@ -1,9 +1,10 @@
 clean:
 	make clear
-clear:
-	rm t1
+clear:	
 	rm *.o
 	rm *.out
+	rm t2
+	rm t1
 
 opts = -fstack-protector-all -std=c99 -g
 comp = gcc
@@ -33,12 +34,16 @@ cid:
 qua:	
 	$(comp) $(opts) -c quadra.c -o quadra.o	
 
+mapa:
+	$(comp) $(opts) -c mapa.c -o cidade.o	
+	$(comp) $(opts) -c vias.c -o vias.o
+
 pm:	
 	$(comp) $(opts) -c pm.c -o pm.o		
 	$(comp) $(opts) -c loc.c -o aluguel.o
 
 c:	
-	$(comp) $(opts) t2.c quadra.o aluguel.o pm.o cidade.o arv.o arq.o qry.o hash.o list.o svg.o -o t2.out
+	$(comp) $(opts) t2.c quadra.o cidade.o vias.o arv.o arq.o qry.o hash.o list.o svg.o -o t2.out
 
 
 oh:
@@ -46,14 +51,22 @@ oh:
 	make arv
 	make din
 	make esp
-	make cid
+	make mapa
 	make svg
 	make qry
 	make qua
-	make pm
 	
 
 t1:
+	make oh
+	make pm
+	make cid
+	$(comp) $(opts) t1.c quadra.o aluguel.o pm.o cidade.o arv.o arq.o qry.o hash.o list.o svg.o -o t1.out
+	cp t1.out t1.o
+	cp t1.o t1
+	echo acabado.
+
+t2:
 	make oh
 	make c
 	cp t2.out t2.o
