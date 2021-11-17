@@ -43,9 +43,21 @@ void cidade_set_ponto (void * cid, void * p);
 
 int cidade_del_ponto (void * cid, float x, float y);
 
-void * cidade_get_vias (void * cid);
-void cidade_set_vias (void * cid, void * vias);
+void * cidade_get_vias_list (void * cid);
+void cidade_set_vias_list (void * cid, void * vias);
 
-void * dijkstra (void * grafo_origem);
+void * cidade_get_vias_vm (void * cid);
+void cidade_set_vias_vm (void * cid, void * vias);
+
+void * cidade_get_vias_cmp (void * cid);
+void cidade_set_vias_cmp (void * cid, void * vias);
+
+void cidade_set_c_cmp (void * cid, int cmp_c);
+int cidade_get_c_cmp (void * cid);
+
+int cidade_get_c_vm (void * cid);
+void cidade_set_c_vm (void * cid, int vm_c);
+
+int dijkstra (void * grafo, void * final, void * fila, void * caminhos, float cv, int c);
 
 #endif

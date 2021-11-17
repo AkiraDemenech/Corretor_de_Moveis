@@ -44,8 +44,8 @@ void vert_set_vias (void * v, void * caminhos) {
 
 void * new_vert (char * id, float x, float y) {
 	vertex * v = malloc(sizeof(vertex));
+	vert_set_vias(v, new_list(0));
 	if(v != NULL) {
-		v->edges = NULL;
 		v->id = id;
 		v->x = x;
 		v->y = y;
@@ -113,14 +113,12 @@ void * via_get_para (void *v) {
 void via_set_para (void *v, void * destino) {
 	if(via_get_para(v) == destino || v == NULL)
 		return;
-	list_insert(vert_get_vias(destino),v);
 	((edge *) v)->to = destino;	
 }
 
 void via_set_de (void *v, void * origem) {
 	if(via_get_de(v) == origem || v == NULL)
 		return;
-	list_insert(vert_get_vias(origem),v);	
 	((edge *) v)->from = origem;	
 	
 }

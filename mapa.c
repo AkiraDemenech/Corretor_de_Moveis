@@ -9,22 +9,25 @@
 #include"arq.h"
 #include"svg.h"
 
-void * dijkstra (void * grafo, float cv) {
-	if(grafo == NULL)
-		return NULL;
-	int i, j, c = 0;
-	void * fila = new_list(0);
-	void * caminhos = new_hash_table(8191);
-	void * v = new_via(vert_id(grafo),NULL,NULL);
+int dijkstra (void * grafo, void * final, void * fila, void * caminhos, float cv, int c) {
+	if(grafo == NULL || caminhos == NULL)
+		return c;		
+		
+	int i, j;
+	void * v;
 	void * u;
-	float p = c;
-	// começamos com a raiz do grafo (origem dos caminhos)
-	via_set_para(v,grafo); // o caminho para a origem 
-	via_set_de(v, NULL); // ele não veio de lugar nenhum, se viesse, aqui estaria o caminho anterior
-	via_set_cmp(v,p);
-	via_set_vm(v, c);
-	list_set(fila,c,v);
-	while(c < list_get_len(fila)) {
+	float p;
+	if(list_get_len(fila) <= 0) {
+		// começamos com a raiz do grafo (origem dos caminhos)
+		c = 0;
+		v = new_via(vert_id(grafo),NULL,NULL);
+		via_set_para(v,grafo); // o caminho para a origem 
+		via_set_de(v, NULL); // ele não veio de lugar nenhum, se viesse, aqui estaria o caminho anterior
+		via_set_cmp(v,0);
+		via_set_vm(v, 0);
+		list_add(fila,v);
+	}	
+	while(c < list_get_len(fila) && via_get_para(v) != final) {
 		// enquanto houverem vértices na lista para verificar
 		v = li_get_valor(list_get(fila, c));
 		grafo = via_get_para(v);
@@ -62,9 +65,8 @@ void * dijkstra (void * grafo, float cv) {
 			}
 		hash_set(caminhos,vert_id(grafo),v); // inserimos a origem e seus dados no mapeamento do algoritmo		
 		c++;
-	}
-	list_del_all(fila);
-	return caminhos;
+	}	
+	return c;
 }
 
 void * list_get_quadra (void * lista, float y) {
@@ -128,9 +130,13 @@ void cidade_insort_ponto (void * lista, void * ponto) {
 }
 
 void arv_del_listas (void * avl) {
+	int c;
 	while(avl != NULL) {
+		for(c = 0; c < list_get_len(arv_get_valor(avl)); c++)		
+			if(li_get_item(list_get(arv_get_valor(avl), c)) != NULL)
+				free(li_get_item(list_get(arv_get_valor(avl),c)));
 		list_del_all(arv_get_valor(avl));
-		arv_del_quadras(arv_get_dir(avl));
+		arv_del_listas(arv_get_dir(avl));
 		avl = arv_get_esq(avl);
 	}	
 }
@@ -296,7 +302,7 @@ void cidade_vias (void * cid, char * vias) {
 	if(vias == NULL || cid == NULL)
 		return;
 
-	void * m;
+	void * m, * n;
 	FILE * pes = fopen(vias,"r");
 	if(pes == NULL) {
 		printf("Arquivo \"%s\" não encontrado.\n",vias);
@@ -306,7 +312,7 @@ void cidade_vias (void * cid, char * vias) {
 	void * pontos = new_hash_table(8191);
 
 	int p = 0, c = 0;
-	float a,b;
+	float a,b; 
 	char i[CEP_TAM], f[CEP_TAM], k[CEP_TAM], l[CEP_TAM * 3];
 	char cep[CEP_TAM];
 	char com[COM_TAM];
@@ -334,8 +340,16 @@ void cidade_vias (void * cid, char * vias) {
 				clean(k,CEP_TAM);				
 				fscanf(pes,"%s %s %s %s %f %f %c",i,f,k,cep,&a,&b,l);
 				m = new_via(malloc(sizeof(char) * (1 + comprimento(l))),malloc(sizeof(char) * (comprimento(k) + 1)),malloc(sizeof(char) * (comprimento(cep) + 1)));				
-				via_set_de(m, hash_get(pontos, i));
-				via_set_para(m,hash_get(pontos,f));
+				n = hash_get(pontos, i);
+				via_set_de(m, n);
+				list_insert(vert_get_vias(n), m);
+				if(n == NULL)
+					printf("\tPonto i %s não encontrado\n",i);
+				n = hash_get(pontos,f);	
+				via_set_para(m,n);
+				list_insert(vert_get_vias(n),m);
+				if(n == NULL)
+					printf("\tPonto j %s não encontrado\n",f);
 				copy(l, via_nome(m));
 				copy(cep,via_esq(m));
 				copy(k,via_dir(m)); 
@@ -354,12 +368,14 @@ void cidade_vias (void * cid, char * vias) {
 }
 
 typedef struct cid {
-	int tam;
+	int tam, c_vm, c_cmp;
 	char * nome_cid;
 	void * pontos_avl;
 	void * quadras_avl;
 	void * quadras_hash;
-	void * vias_hash;
+	void * vias_list;
+	void * vias_cmp;
+	void * vias_vm;
 } cidade;
 
 void * new_cidade (char * nome, int tamanho) {
@@ -367,9 +383,13 @@ void * new_cidade (char * nome, int tamanho) {
 	c->quadras_hash	= NULL;
 	c->quadras_avl	= NULL;
 	c->pontos_avl 	= NULL;
-	c->vias_hash	= NULL;
+	c->vias_list	= NULL;
+	c->vias_vm  	= NULL;
+	c->vias_cmp 	= NULL;
 	c->nome_cid 	= nome;
 	c->tam = tamanho;
+	c->c_cmp = 0;
+	c->c_vm = 0;
 	return c;
 }
 
@@ -490,16 +510,64 @@ void * cidade_get_quadra_hash (void * cid, char * cep) {
 	return hash_get(cidade_get_quadras_hash(cid), cep);
 }
 
-void * cidade_get_vias (void * cid) {
+void * cidade_get_vias_list (void * cid) {
 	if(cid != NULL)
-		return ((cidade *) cid)->vias_hash;
+		return ((cidade *) cid)->vias_list;
 	return NULL;
 }
 
-void cidade_set_vias (void * cid, void * vias) {
+void cidade_set_vias_list (void * cid, void * vias) {
 	if(cid != NULL)
-		((cidade *) cid)->vias_hash = vias;
+		((cidade *) cid)->vias_list = vias;
 }
+
+void * cidade_get_vias_vm (void * cid) {
+	if(cid != NULL)
+		return ((cidade *) cid)->vias_vm;
+	return NULL;
+}
+
+void cidade_set_vias_vm (void * cid, void * vias) {
+	if(cid != NULL)
+		((cidade *) cid)->vias_vm = vias;
+}
+
+void cidade_set_c_vm (void * cid, int vm_c) {
+	if(cid != NULL)
+		((cidade *) cid)->c_vm = vm_c;
+}
+
+int cidade_get_c_vm (void * cid) {
+	if(cid != NULL)
+		return ((cidade *) cid)->c_vm;
+	return 0;
+}
+
+
+
+void * cidade_get_vias_cmp (void * cid) {
+	if(cid != NULL)
+		return ((cidade *) cid)->vias_cmp;
+	return NULL;
+}
+
+void cidade_set_vias_cmp (void * cid, void * vias) {
+	if(cid != NULL)
+		((cidade *) cid)->vias_cmp = vias;
+}
+
+void cidade_set_c_cmp (void * cid, int cmp_c) {
+	if(cid != NULL)
+		((cidade *) cid)->c_cmp = cmp_c;
+}
+
+int cidade_get_c_cmp (void * cid) {
+	if(cid != NULL)
+		return ((cidade *) cid)->c_vm;
+	return 0;
+}
+
+
 
 void cidade_del_all (void * cid) {
 	arv_del_listas(cidade_get_quadras_avl(cid));
@@ -531,12 +599,28 @@ void * cidade_get_ponto (void * cid, float x, float y) {
 }
 
 int cidade_del_ponto (void * cid, float x, float y) {
+	void * a, * j;
 	void * l = arv_get(cidade_get_pontos(cid), x);
-	int c, d = 0;
+	int c, d = 0, b, i;
 	for(c = list_get_len(l) - 1; c >= 0; c--) 
 		if(vert_y(li_get_valor(list_get(l,c))) == y) {
-			list_del(l, c);		
-			d++;
+			b = list_get_len(vert_get_vias(li_get_valor(list_get(l, c))));
+			while(b > 0) {
+				b--;
+				a = li_get_valor(list_get(vert_get_vias(li_get_valor(list_get(l, c))), b));
+				j = via_get_de(a); 
+				if(j == via_get_para(a))
+					continue; // não verifica as autorreferências
+				if(j == li_get_valor(list_get(l, c))) 
+					j = via_get_para(a);
+				for(i = list_get_len(vert_get_vias(j)) - 1; i >= 0; i--)
+					if(via_get_de(li_get_valor(list_get(vert_get_vias(j), i))) == li_get_valor(list_get(l, c)) || via_get_para(li_get_valor(list_get(vert_get_vias(j), i))) == li_get_valor(list_get(l, c))) {	
+						list_del(vert_get_vias(j), i); // remover as arestas que possuem o vértice removido nas listas dos outros vértices
+						d++;
+					}	
+			}
+			list_del_all(vert_get_vias(li_get_valor(list_get(l,c))));
+			list_del(l, c);					
 		}	
 	return d;	
 }
