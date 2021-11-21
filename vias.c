@@ -118,7 +118,7 @@ void via_set_para (void *v, void * destino) {
 
 void via_set_de (void *v, void * origem) {
 	if(via_get_de(v) == origem || v == NULL)
-		return;
+		return;		
 	((edge *) v)->from = origem;	
 	
 }

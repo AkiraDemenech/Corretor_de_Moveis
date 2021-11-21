@@ -9,9 +9,9 @@
 #include"arq.h"
 #include"svg.h"
 
-int dijkstra (void * grafo, void * final, void * fila, void * caminhos, float cv, int c) {
+void dijkstra (void * grafo, void * final, void * fila, void * caminhos, float cv) {
 	if(grafo == NULL || caminhos == NULL)
-		return c;		
+		return;		
 		
 	int i, j;
 	void * v;
@@ -19,7 +19,6 @@ int dijkstra (void * grafo, void * final, void * fila, void * caminhos, float cv
 	float p;
 	if(list_get_len(fila) <= 0) {
 		// começamos com a raiz do grafo (origem dos caminhos)
-		c = 0;
 		v = new_via(vert_id(grafo),NULL,NULL);
 		via_set_para(v,grafo); // o caminho para a origem 
 		via_set_de(v, NULL); // ele não veio de lugar nenhum, se viesse, aqui estaria o caminho anterior
@@ -27,9 +26,9 @@ int dijkstra (void * grafo, void * final, void * fila, void * caminhos, float cv
 		via_set_vm(v, 0);
 		list_add(fila,v);
 	}	
-	while(c < list_get_len(fila) && via_get_para(v) != final) {
+	while(list_get_len(fila) > 0 && via_get_para(v) != final) {
 		// enquanto houverem vértices na lista para verificar
-		v = li_get_valor(list_get(fila, c));
+		v = li_get_valor(list_get(fila, 0));
 		grafo = via_get_para(v);
 		// guardamos o caminho atual e seu vértice de destino (origem para os próximos caminhos verificados)
 		for(i = 0; i < list_get_len(vert_get_vias(grafo)); i++) // para todas as vias deste vértice
@@ -52,21 +51,61 @@ int dijkstra (void * grafo, void * final, void * fila, void * caminhos, float cv
 					via_set_para(u, via_get_para(li_get_valor(list_get(vert_get_vias(grafo), i))));										
 					// criamos este novo caminho, caso esse destino já não fosse conhecido antes.
 				}	
-				if(j > c) {
+				if(j > 0) {
 					// caso devamos inserir o caminho (talvez novamente), 
 					// atualizamos ou inserimos seus dados
 					via_set_de(u, v);
 					via_set_vm(u, p + via_get_cmp(v));
 					via_set_cmp(u, via_get_cmp(li_get_valor(list_get(vert_get_vias(grafo), i)))); // o comprimento percorrido nesse caminho é copiado
-					while(j > c && via_get_vm(li_get_valor(list_get(fila,j))) > via_get_vm(u)) // avança na fila à procura do último caminho menor ou igual a ele em peso
+					while(j > 0 && via_get_vm(li_get_valor(list_get(fila,j))) > via_get_vm(u)) // avança na fila à procura do último caminho menor ou igual a ele em peso
 						j--;
 					list_set(fila, j + 1, u); // e entra imediatamente atrás dele																															
 				} 
 			}
 		hash_set(caminhos,vert_id(grafo),v); // inserimos a origem e seus dados no mapeamento do algoritmo		
-		c++;
+		list_del(fila, 0);
 	}	
-	return c;
+	
+}
+
+void * kruskal (void * vias, void * floresta) {
+	if(list_get_len(vias) <= 0 || floresta == NULL)
+		return NULL;
+
+	void * em_qual = new_hash_table(list_get_len(vias));
+	void * de;
+	void * para;
+
+	int c, d;
+	for(c = 0; c < list_get_len(vias); c++) {
+		de = hash_get(em_qual, vert_id(via_get_de(li_get_valor(list_get(vias, c)))));
+		para = hash_get(em_qual, vert_id(via_get_para(li_get_valor(list_get(vias, c)))));
+		if(de == NULL) {
+			if(para == NULL) {
+				para = new_list(0);
+				list_add(floresta, para);
+				list_add(para, li_get_valor(list_get(vias,c)));
+				hash_set(em_qual, vert_id(via_get_para(li_get_valor(list_get(vias, c)))), para);
+			} 
+			hash_set(em_qual, vert_id(via_get_de(li_get_valor(list_get(vias,c)))), para);			
+		} else if(para == NULL) 
+			hash_set(em_qual, vert_id(via_get_para(li_get_valor(list_get(vias,c)))), de);
+		else if(para != de) { 
+			hash_set(em_qual,vert_id(via_get_de(li_get_valor(list_get(vias,c)))),para);
+			d = list_get_len(floresta);
+			while(d > 0) {
+				d--;
+				if(li_get_valor(list_get(floresta, d)) == de)
+					list_del(floresta, d);
+			}	
+			for(d = 0; d < list_get_len(de); d++) 
+				list_add(para, li_get_valor(list_get(de, d)));
+			list_del_all(de);				
+		}	
+	}	
+
+	return em_qual;
+
 }
 
 void * list_get_quadra (void * lista, float y) {
@@ -127,6 +166,18 @@ void cidade_insort_ponto (void * lista, void * ponto) {
 		if(vert_y(li_get_valor(list_get(lista, c))) >= vert_y(ponto))
 			break;
 	list_set(lista,c,ponto);
+}
+
+void cidade_insort_via (void * lista, void * via) {
+	int c;
+	for(c = 0; c < list_get_len(lista); c++) 
+		if(via_get_cmp(li_get_valor(list_get(lista, c))) >= via_get_cmp(via)) {
+			if(via_get_cmp(li_get_valor(list_get(lista,c))) > via_get_cmp(via))
+				break;
+			if(li_get_valor(list_get(lista,c)) == via)	
+				return;
+		}	
+	list_set(lista, c, via);
 }
 
 void arv_del_listas (void * avl) {
@@ -368,7 +419,7 @@ void cidade_vias (void * cid, char * vias) {
 }
 
 typedef struct cid {
-	int tam, c_vm, c_cmp;
+	int tam;
 	char * nome_cid;
 	void * pontos_avl;
 	void * quadras_avl;
@@ -388,8 +439,6 @@ void * new_cidade (char * nome, int tamanho) {
 	c->vias_cmp 	= NULL;
 	c->nome_cid 	= nome;
 	c->tam = tamanho;
-	c->c_cmp = 0;
-	c->c_vm = 0;
 	return c;
 }
 
@@ -409,6 +458,28 @@ void cidade_set_tamanho (void * cid, int tamanho) {
 	if(cid != NULL) 
 		((cidade*)cid)->tam = tamanho;
 	cidade_set_quadras(cid, tamanho);
+}
+
+void * cidade_get_vias_em (void * pontos_em) {
+	
+	if(list_get_len(pontos_em) <= 0)
+		return NULL;
+
+	void * em = new_hash_table(list_get_len(pontos_em));
+	void * vias_em = new_list(0);
+
+	int c, b;
+	for(c = 0; c < list_get_len(pontos_em); c++) 
+		hash_set(em, vert_id(li_get_valor(list_get(pontos_em, c))), li_get_valor(list_get(pontos_em,c)));	
+	c = list_get_len(pontos_em);
+	while(c > 0) {
+		c--;
+		for(b = 0; b < list_get_len(vert_get_vias(li_get_valor(list_get(pontos_em, c)))); b++) 
+			if(hash_get(em,vert_id(via_get_de(li_get_valor(list_get_len(vert_get_vias(li_get_valor(list_get(pontos_em,c)))))))) != NULL && hash_get(em,vert_id(via_get_para(li_get_valor(list_get_len(vert_get_vias(li_get_valor(list_get(pontos_em,c)))))))) != NULL)
+				cidade_insort_via(vias_em, li_get_valor(list_get_len(vert_get_vias(li_get_valor(list_get(pontos_em, c))))));				
+	}
+	hash_del_all(em);
+	return vias_em;
 }
 
 void * cidade_get_pontos_em (void * cid, float x, float y, float w, float h) {
@@ -532,16 +603,6 @@ void cidade_set_vias_vm (void * cid, void * vias) {
 		((cidade *) cid)->vias_vm = vias;
 }
 
-void cidade_set_c_vm (void * cid, int vm_c) {
-	if(cid != NULL)
-		((cidade *) cid)->c_vm = vm_c;
-}
-
-int cidade_get_c_vm (void * cid) {
-	if(cid != NULL)
-		return ((cidade *) cid)->c_vm;
-	return 0;
-}
 
 
 
@@ -554,17 +615,6 @@ void * cidade_get_vias_cmp (void * cid) {
 void cidade_set_vias_cmp (void * cid, void * vias) {
 	if(cid != NULL)
 		((cidade *) cid)->vias_cmp = vias;
-}
-
-void cidade_set_c_cmp (void * cid, int cmp_c) {
-	if(cid != NULL)
-		((cidade *) cid)->c_cmp = cmp_c;
-}
-
-int cidade_get_c_cmp (void * cid) {
-	if(cid != NULL)
-		return ((cidade *) cid)->c_vm;
-	return 0;
 }
 
 

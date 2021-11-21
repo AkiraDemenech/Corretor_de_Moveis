@@ -17,6 +17,7 @@ void cidade_del_all (void * cid);
 int cidade_get_tamanho (void * cid);
 void cidade_set_tamanho (void * cid, int tamanho);
 
+void * cidade_get_vias_em (void * pontos_em);
 void * cidade_get_pontos_em (void * cid, float x, float y, float w, float h);
 void * cidade_get_quadras_em (void *cid, float x, float y, float w, float h);
 
@@ -33,6 +34,8 @@ void cidade_set_quadra (void * cid, void * quadra);
 
 void cidade_insort_quadra (void * lista, void * quadra);
 int busca_bin_quadra (void * lista, float y);
+
+void cidade_insort_via (void * lista, void * via);
 
 void cidade_insort_ponto (void * lista, void * ponto);
 int busca_bin_ponto (void * lista, float y);
@@ -52,12 +55,7 @@ void cidade_set_vias_vm (void * cid, void * vias);
 void * cidade_get_vias_cmp (void * cid);
 void cidade_set_vias_cmp (void * cid, void * vias);
 
-void cidade_set_c_cmp (void * cid, int cmp_c);
-int cidade_get_c_cmp (void * cid);
-
-int cidade_get_c_vm (void * cid);
-void cidade_set_c_vm (void * cid, int vm_c);
-
-int dijkstra (void * grafo, void * final, void * fila, void * caminhos, float cv, int c);
+void dijkstra (void * grafo, void * final, void * fila, void * caminhos, float cv);
+void * kruskal (void * vias, void * floresta);
 
 #endif
