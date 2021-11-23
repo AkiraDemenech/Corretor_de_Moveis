@@ -25,6 +25,7 @@ char * via_nome (void * v);
 char * via_esq (void * v);
 char * via_dir (void * v);
 
+void via_lugar (void * v, char * nome, char * dir, char * esq);
 void * new_via (char * nome, char * dir, char * esq);
 
 #endif

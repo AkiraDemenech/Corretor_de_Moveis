@@ -71,13 +71,20 @@ typedef struct arest {
 void * new_via (char * nome, char * dir, char * esq) {
 	edge * e = malloc(sizeof(edge));
 	if(e != NULL) {
-		e->dir = dir;
-		e->esq = esq;
-		e->nome = nome;
+		via_lugar(e, nome, dir, esq);
 		e->from = NULL;
 		e->to = NULL;
 	}
 	return e;
+}
+
+void via_lugar (void * v, char * nome, char * dir, char * esq) {
+	if(v == NULL)
+		return;
+	edge * e = (edge *) v;	
+	e->dir = dir;
+	e->esq = esq;
+	e->nome = nome;
 }
 
 char * via_nome (void * v) {

@@ -46,14 +46,27 @@ void cidade_set_ponto (void * cid, void * p);
 
 int cidade_del_ponto (void * cid, float x, float y);
 
-void * cidade_get_vias_list (void * cid);
-void cidade_set_vias_list (void * cid, void * vias);
+void * cidade_get_vias_list (void * c, int t);
+void * cidade_get_vias (void * c, int t);
+
+void cidade_set_vias (void * c, void * vias, int t);
+void cidade_set_vias_list (void * c, void * vias, int t);
 
 void * cidade_get_vias_vm (void * cid);
 void cidade_set_vias_vm (void * cid, void * vias);
 
+void * cidade_get_vias_list_vm (void * cid);
+void cidade_set_vias_list_vm (void * cid, void * lista);
+
+void * cidade_get_vias_list_cmp (void * cid);
+void cidade_set_vias_list_cmp (void * cid, void * lista);
+
 void * cidade_get_vias_cmp (void * cid);
 void cidade_set_vias_cmp (void * cid, void * vias);
+
+void * cidade_caminho_cmp (void * c, void * d, void * p);
+void * cidade_caminho_vm (void * c, void * d, void * p);
+void * cidade_caminho (void * cid, void * de, void * para, int tipo);
 
 void dijkstra (void * grafo, void * final, void * fila, void * caminhos, float cv);
 void * kruskal (void * vias, void * floresta);
