@@ -83,11 +83,12 @@ void svg_rect_close (void *svg) {
 void svg_line (void * svg, char * color, char * width, float xi, float yi, float xf, float yf) {
 	if(svg == NULL)
 		return;
-	fprintf(svg,"\t\t<line x1=\"%f\" x2=\"%f\" y1=\"%f\" y2=\"%f\"\tstyle=\"",xi,xf,yi,yf);	
-	if(color != NULL)
-		fprintf(svg,"stroke:%s;",color);
+	fprintf(svg,"\t\t<line x1=\"%f\" x2=\"%f\" y1=\"%f\" y2=\"%f\"\tstroke=\"",xi,xf,yi,yf);	
+	if(color == NULL)
+		fprintf(svg,"black");
+	else fprintf(svg, color);
 	if(width != NULL)	
-		fprintf(svg,"stroke-width:%s",width);
+		fprintf(svg,"\" stroke-width=\"%s",width);
 	fprintf(svg,"\"/>\n");	
 
 }
@@ -141,4 +142,14 @@ void svg_ellipse_open (void * svg, char * id, char * fill, char * stroke, char *
 void svg_ellipse_close (void *svg) {
 	if(svg != NULL)
 		fprintf(svg,"</ellipse> \n");
+}
+
+void hex64 (char *c, int v) {
+	c[HEX - 1] = '\0';
+	*c = '#';
+	int i;
+	for(i = 1; i <= HEX - 2; i++) {
+		c[i] = (v % 2) * ('F' - '0') + '0';
+		v /= 2;
+	}	
 }

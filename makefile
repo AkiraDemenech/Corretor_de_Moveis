@@ -6,12 +6,15 @@ clear:
 	rm t2
 	rm t1
 
-opts = -fstack-protector-all -std=c99 -g
+opts = -Wall -ansi -pedantic -fstack-protector-all -std=c99 -g
 comp = gcc
 
 
-qry:	
+qry1:	
 	$(comp) $(opts) -c qry.c -o qry.o
+
+qry2:	
+	$(comp) $(opts) -c qry2.c -o qry.o
 
 svg:
 	$(comp) $(opts) -c svg.c -o svg.o
@@ -52,8 +55,7 @@ oh:
 	make din
 	make esp
 	make mapa
-	make svg
-	make qry
+	make svg	
 	make qua
 	
 
@@ -61,12 +63,14 @@ t1:
 	make oh
 	make pm
 	make cid
+	make qry1
 	$(comp) $(opts) t1.c quadra.o aluguel.o pm.o cidade.o arv.o arq.o qry.o hash.o list.o svg.o -o t1.out
 	cp t1.out t1.o
 	cp t1.o t1
 	echo acabado.
 
 t2:
+	make qry2
 	make oh
 	make c
 	cp t2.out t2.o

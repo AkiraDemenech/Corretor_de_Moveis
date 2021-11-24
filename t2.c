@@ -89,9 +89,7 @@ int main (int argc, char *argv[]) {
 	void * cidade = cidade_geo(geo_completo);
 	printf("%s lida com sucesso.\n",cidade_get_nome(cidade));
 
-	// escrever SVG inicial
-	printf("Escrevendo SVG:\t");
-	cidade_svg(arq_nome_completo(bsd,arq_nome_concat(0,'.','.',arq_nome(geo),"svg")),cidade);
+	
 
 	printf("\n");
 
@@ -101,7 +99,10 @@ int main (int argc, char *argv[]) {
 		cidade_vias(cidade,via_completo); // ler VIAS
 		printf("Vias lidas com sucesso.\n");			
 	}
-		
+
+	// escrever SVG inicial
+	printf("Escrevendo SVG:\t");
+	cidade_svg(arq_nome_completo(bsd,arq_nome_concat(0,'.','.',arq_nome(geo),"svg")),cidade);	
 
 	if(qry_completo != NULL)
 	{

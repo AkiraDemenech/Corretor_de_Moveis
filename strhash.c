@@ -71,11 +71,12 @@ void hash_set (void * tabesp, char * chave, void * valor) {
 	if(tabesp == NULL) 
 		return;	
 
-		
-	void ** l = hash_v_get_list(tabesp,hash(chave)%hash_get_len(tabesp));
+	int h = hash(chave) % hash_get_len(tabesp);	
+	void ** l = hash_v_get_list(tabesp, h);
 	if(*l == NULL)
 		*l = new_list(0);
-	else printf("\tColisão! %s já existente [%d]\n",chave,list_get_len(*l));	
+//	else printf("[%d]\tColisão!\t %s\tjá existentes %d com mesma hash \n",h,chave,list_get_len(*l));	
+//	printf("{%d}[%d]\n",h,list_get_len(*l));
 	list_insert(((tabela*)tabesp)->chaves,chave);
 	list_insert(*l,valor);	
 	li_set_chave(list_get_atual(*l),chave);

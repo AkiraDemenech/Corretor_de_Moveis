@@ -25,6 +25,11 @@ char * via_nome (void * v);
 char * via_esq (void * v);
 char * via_dir (void * v);
 
+char * via_contorno (void *v);
+char * via_largura (void * v);
+void via_estilo (void * v, char * contorno, char * largura);
+
+
 void via_lugar (void * v, char * nome, char * dir, char * esq);
 void * new_via (char * nome, char * dir, char * esq);
 

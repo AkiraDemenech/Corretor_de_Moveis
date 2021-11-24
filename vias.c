@@ -2,6 +2,7 @@
 #include<stdlib.h>
 #include <stdio.h>
 #include"list.h"
+#include"vias.h"
 
 typedef struct vert {
 
@@ -61,6 +62,9 @@ typedef struct arest {
 	char * dir;
 	char * esq;
 
+	char * width;
+	char * stroke;
+
 	char * nome;
 
 	float cmp;
@@ -74,6 +78,8 @@ void * new_via (char * nome, char * dir, char * esq) {
 		via_lugar(e, nome, dir, esq);
 		e->from = NULL;
 		e->to = NULL;
+		e->stroke = NULL;
+		e->width = NULL;
 	}
 	return e;
 }
@@ -152,3 +158,21 @@ void via_set_vm (void *v, float velocidade) {
 		((edge *) v)->vm = velocidade;
 }
 
+void via_estilo (void * v, char * contorno, char * largura) {
+	if(v != NULL) {
+		((edge *) v)->stroke = contorno;
+		((edge *) v)->width = largura;
+	}
+}
+
+char * via_contorno (void * v) {
+	if(v == NULL)
+		return NULL;
+	return ((edge *) v)->stroke;	
+}
+
+char * via_largura (void * v) {
+	if(v == NULL)
+		return NULL;
+	return ((edge *) v)->width;	
+}

@@ -1,9 +1,10 @@
 #ifndef __CIDADE__H // o mesmo de cidade.h
 #define __CIDADE__H	// há várias funções homônimas
 #define COM_TAM 3
-#define CEP_TAM 32
+#define CEP_TAM 64
 #define NOME_TAM 128
 
+void vias_svg (void * img, void * arvore);
 void quadras_svg (void * img, void * arvore);
 
 char * cidade_get_nome (void * cid);
@@ -71,8 +72,8 @@ void * cidade_caminho (void * cid, void * de, void * para, int tipo);
 void dijkstra (void * grafo, void * final, void * fila, void * caminhos, float cv);
 void * kruskal (void * vias, void * floresta);
 
-void * kosaraju (void * g);
+void * kosaraju (void * g, float limiar);
 
-void arv_dfs (void * avl_vert, void * list_out, void * vert_visit);
+void arv_dfs (void * avl_vert, void * list_out, void * vert_visit, float corte);
 
 #endif

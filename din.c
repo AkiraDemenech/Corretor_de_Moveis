@@ -1,10 +1,12 @@
 #include<stdlib.h>
+#include <stdio.h>
 #include"list.h"
 
 typedef struct no {
 	void * valor;
 	void * chave;
 	struct no * conecta[LIST_CON];
+	
 } item;
 
 void li_set_valor (void * elemento, void * valor) {
@@ -55,13 +57,14 @@ int list_set_index (void * list, int index) {
 		if(index < 0)
 			return 0;
 	}		
+//	printf("%d %d %d %p %p\n",index,l->index,l->len,l->atual);
 	int inc = -1, next = 0;
 	if(index > l->index) {		
 		next = LIST_CON - 1;
 		inc = 1;
 	}
 	while(index != l->index) {		
-		if(l->atual->conecta[next] == NULL) 			
+		if(l->atual == NULL || l->atual->conecta == NULL || next >= LIST_CON || next < 0 || l->atual->conecta[next] == NULL) 			
 			return l->index;						
 		l->index += inc;
 		l->atual = l->atual->conecta[next];
@@ -99,6 +102,7 @@ int list_set (void * list, int index, void * valor) {
 	item * prev = NULL;
 	item * prox = NULL;			
 	item * novo = (item *) malloc(sizeof(item));
+//	novo->conecta = (item **) malloc(sizeof(item*)*LIST_CON);
 	if(l->atual != NULL) {
 		prev = l->atual->conecta[0];
 		prox = l->atual;				

@@ -9,7 +9,7 @@
 #include"arq.h"
 #include"svg.h"
 
-void * cfc (void * grafo, void * componente, void * em_componentes) {	
+void * cfc (void * grafo, void * componente, void * em_componentes, float vmin) {	
 	if(hash_get(em_componentes, vert_id(grafo)) == NULL) {
 		if(componente == NULL)
 			componente = new_list(0);
@@ -17,19 +17,24 @@ void * cfc (void * grafo, void * componente, void * em_componentes) {
 		hash_set(em_componentes, vert_id(grafo), componente);
 		int c;
 		for(c = 0; c < list_get_len(vert_get_vias(grafo)); c++)
-			if(via_get_de(li_get_valor(list_get(vert_get_vias(grafo), c))) != grafo) 
-				cfc(via_get_de(li_get_valor(list_get(vert_get_vias(grafo),c))),componente,em_componentes);				
+			if(via_get_de(li_get_valor(list_get(vert_get_vias(grafo), c))) != grafo && via_get_vm(li_get_valor(list_get(vert_get_vias(grafo), c))) >= vmin) 
+				cfc(via_get_de(li_get_valor(list_get(vert_get_vias(grafo),c))),componente,em_componentes,vmin);				
 	}
 	return componente;
 }
 
-void dfs (void * grafo, void * pilha, void * visitados) {
+void dfs (void * grafo, void * pilha, void * visitados, float vmin) {
 	if(hash_get(visitados, vert_id(grafo)) == NULL) {
 		hash_set(visitados, vert_id(grafo), grafo);
 		int c;
-		for(c = 0; c < list_get_len(vert_get_vias(grafo)); c++) 
+		for(c = 0; c < list_get_len(vert_get_vias(grafo)); c++) {
+			if(via_get_vm(li_get_valor(list_get(vert_get_vias(grafo), c))) < vmin) {
+				via_estilo(li_get_valor(list_get(vert_get_vias(grafo),c)),"red","3px");
+				continue;
+			}
 			if(via_get_para(li_get_valor(list_get(vert_get_vias(grafo), c))) != grafo)
-				dfs(via_get_para(li_get_valor(list_get(vert_get_vias(grafo),c))),pilha,visitados);
+				dfs(via_get_para(li_get_valor(list_get(vert_get_vias(grafo),c))),pilha,visitados,vmin);
+		}		
 		list_add(pilha, grafo);
 	}
 }
@@ -135,17 +140,17 @@ void * kruskal (void * vias, void * floresta) {
 	em_qual = new_hash_table(list_get_len(floresta));
 
 	for(c = 0; c < list_get_len(floresta); c++) { 
-		r = via_get_de(li_get_item(list_get(li_get_item(list_get(floresta, c)), d)));
-		for(d = 0; d < list_get_len(li_get_item(list_get(floresta, c))); d++) {
-			para = hash_get(em_qual,vert_id(via_get_para(li_get_item(list_get(li_get_item(list_get(floresta,c)),d)))));
-			de = hash_get(em_qual,vert_id(via_get_de(li_get_item(list_get(li_get_item(list_get(floresta,c)),d)))));
-			if(para == NULL || r == via_get_de(li_get_item(list_get(li_get_item(list_get(floresta,c)),d)))) {
+		r = via_get_de(li_get_valor(list_get(li_get_valor(list_get(floresta, c)), d)));
+		for(d = 0; d < list_get_len(li_get_valor(list_get(floresta, c))); d++) {
+			para = hash_get(em_qual,vert_id(via_get_para(li_get_valor(list_get(li_get_valor(list_get(floresta,c)),d)))));
+			de = hash_get(em_qual,vert_id(via_get_de(li_get_valor(list_get(li_get_valor(list_get(floresta,c)),d)))));
+			if(para == NULL || r == via_get_de(li_get_valor(list_get(li_get_valor(list_get(floresta,c)),d)))) {
 				if(de == NULL) {
 					de = new_list(0);
-					hash_set(em_qual, vert_id(via_get_de(li_get_item(list_get(li_get_item(list_get(floresta, c)), d)))), de);
+					hash_set(em_qual, vert_id(via_get_de(li_get_valor(list_get(li_get_valor(list_get(floresta, c)), d)))), de);
 				}
-				list_add(de, li_get_item(list_get(li_get_item(list_get(floresta, c)), d)));
-			} else list_add(para, li_get_item(list_get(li_get_item(list_get(floresta, c)), d)));
+				list_add(de, li_get_valor(list_get(li_get_valor(list_get(floresta, c)), d)));
+			} else list_add(para, li_get_valor(list_get(li_get_valor(list_get(floresta, c)), d)));
 		}	
 	}	
 
@@ -153,11 +158,11 @@ void * kruskal (void * vias, void * floresta) {
 
 }
 
-void * kosaraju (void * g) {
+void * kosaraju (void * g, float limiar) {
 	void * componentes = new_list(0);
 	void * visitados = new_hash_table(127 + list_get_len(componentes));
 
-	arv_dfs(g, componentes, visitados);	
+	arv_dfs(g, componentes, visitados, limiar);	
 
 	int c = list_get_len(componentes);
 	void * comp;
@@ -166,7 +171,7 @@ void * kosaraju (void * g) {
 	
 	while(c > 0) { 
 		c--;
-		comp = cfc(li_get_valor(list_get(componentes, c)), NULL, visitados);
+		comp = cfc(li_get_valor(list_get(componentes, c)), NULL, visitados, limiar);
 		list_del(componentes, c);
 		if(comp != NULL)
 			list_add(componentes, comp);
@@ -251,20 +256,20 @@ void arv_del_listas (void * avl) {
 	int c;
 	while(avl != NULL) {
 		for(c = 0; c < list_get_len(arv_get_valor(avl)); c++)		
-			if(li_get_item(list_get(arv_get_valor(avl), c)) != NULL)
-				free(li_get_item(list_get(arv_get_valor(avl),c)));
+			if(li_get_valor(list_get(arv_get_valor(avl), c)) != NULL)
+				free(li_get_valor(list_get(arv_get_valor(avl),c)));
 		list_del_all(arv_get_valor(avl));
 		arv_del_listas(arv_get_dir(avl));
 		avl = arv_get_esq(avl);
 	}	
 }
 
-void arv_dfs (void * avl_vert, void * list_out, void * vert_visit) {
+void arv_dfs (void * avl_vert, void * list_out, void * vert_visit, float corte) {
 	int c;
 	while(avl_vert != NULL) {
 		for(c = 0; c < list_get_len(arv_get_valor(avl_vert)); c++)
-			dfs(li_get_item(list_get(arv_get_valor(avl_vert), c)), list_out, vert_visit);
-		arv_dfs(arv_get_dir(avl_vert), list_out, vert_visit);	
+			dfs(li_get_valor(list_get(arv_get_valor(avl_vert), c)), list_out, vert_visit, corte);
+		arv_dfs(arv_get_dir(avl_vert), list_out, vert_visit, corte);	
 		avl_vert = arv_get_esq(avl_vert);
 	}
 }
@@ -326,13 +331,31 @@ void quadras_svg (void * img, void * arvore) {
 		while(c > 0) {
 			c--;
 			q = li_get_valor(list_get(arv_get_valor(arvore),c));
-			if(q != NULL) {
+			if(q != NULL) 
 				svg_rect(img,quadra_get_cep(q),quadra_get_fill(q),quadra_get_strk(q),quadra_get_esp(q),quadra_get_x(q),quadra_get_y(q),quadra_get_w(q),quadra_get_h(q));			
-			}	
 		}
 		arvore = arv_get_dir(arvore);
 	}
 }	
+void vias_svg (void * img, void * arvore) {  
+	int c, i;
+	void * q;
+	while(img != NULL && arvore != NULL) {				
+		i = list_get_len(arv_get_valor(arvore));
+		while(i > 0) {				
+			i--;
+			q = li_get_valor(list_get(arv_get_valor(arvore), i));
+			if(q != NULL) {
+				svg_circle(img, vert_id(q), "black", NULL, NULL, vert_x(q), vert_y(q), 4);			
+				for(c = 0; c < list_get_len(vert_get_vias(q)); c++) 
+					if(via_get_de(li_get_valor(list_get(vert_get_vias(q), c))) == q)
+						svg_line(img, via_contorno(li_get_valor(list_get(vert_get_vias(q),c))), via_largura(li_get_valor(list_get(vert_get_vias(q),c))), vert_x(q), vert_y(q), vert_x(via_get_para(li_get_valor(list_get(vert_get_vias(q),c)))), vert_y(via_get_para(li_get_valor(list_get(vert_get_vias(q),c)))));
+			}	
+		}
+		vias_svg(img,arv_get_dir(arvore));
+		arvore = arv_get_esq(arvore);
+	}
+}
 void cidade_svg (char * svg, void * cidade) {
 	if(svg == NULL)
 		return;
@@ -344,6 +367,7 @@ void cidade_svg (char * svg, void * cidade) {
 		fprintf(res,"\n202000560125 \nGuilherme Akira Demenech Mori \n%s\n\t",arq_nome(svg));
 		svg_comment_close(res);
 		quadras_svg(res,cidade_get_quadras_avl(cidade));
+		vias_svg(res,cidade_get_pontos(cidade));
 		svg_close(res);
 		fclose(res);
 	} else printf("Arquivo %s não pôde ser aberto.",svg);
@@ -454,7 +478,7 @@ void cidade_vias (void * cid, char * vias) {
 				fscanf(pes,"%s %f %f",cep,&a,&b);
 				m = new_vert(malloc(sizeof(char) * (1 + comprimento(cep))), a, b);		//*/
 				vert_set_vias(m, new_list(0));
-				copy(cep, vert_id(m));
+				copy(cep, vert_id(m));			
 				hash_set(pontos,vert_id(m),m);
 				cidade_set_ponto(cid,m);
 				p++;
@@ -466,7 +490,7 @@ void cidade_vias (void * cid, char * vias) {
 				clean(i,CEP_TAM);
 				clean(f,CEP_TAM);
 				clean(k,CEP_TAM);				
-				fscanf(pes,"%s %s %s %s %f %f %c",i,f,k,cep,&a,&b,l);
+				fscanf(pes,"%s %s %s %s %f %f %s",i,f,k,cep,&a,&b,l);
 				m = new_via(malloc(sizeof(char) * (1 + comprimento(l))),malloc(sizeof(char) * (comprimento(k) + 1)),malloc(sizeof(char) * (comprimento(cep) + 1)));				
 				n = hash_get(pontos, i);
 				via_set_de(m, n);
@@ -484,7 +508,7 @@ void cidade_vias (void * cid, char * vias) {
 				copy(cep,via_esq(m));
 				copy(k,via_dir(m)); 
 				if(a <= 0 || b <= 0) {	
-					printf("%s\t%s %s  %s %s\n", via_nome(m), vert_id(via_get_de(m)), vert_id(via_get_para(m)), via_dir(m), via_esq(m));
+					printf("%s\t%s %s  %s %s\t%f %f\n", via_nome(m), vert_id(via_get_de(m)), vert_id(via_get_para(m)), via_dir(m), via_esq(m), via_get_cmp(m), via_get_vm(m));
 					if(via_get_cmp(m) < 0)
 						printf("\tComprimento cmp negativo: %f\n", via_get_cmp(m));	
 					if(via_get_vm(m) <= 0)	
@@ -560,8 +584,8 @@ void * cidade_get_vias_em (void * pontos_em) {
 	while(c > 0) {
 		c--;
 		for(b = 0; b < list_get_len(vert_get_vias(li_get_valor(list_get(pontos_em, c)))); b++) 
-			if(hash_get(em,vert_id(via_get_de(li_get_valor(list_get_len(vert_get_vias(li_get_valor(list_get(pontos_em,c)))))))) != NULL && hash_get(em,vert_id(via_get_para(li_get_valor(list_get_len(vert_get_vias(li_get_valor(list_get(pontos_em,c)))))))) != NULL)
-				cidade_insort_via(vias_em, li_get_valor(list_get_len(vert_get_vias(li_get_valor(list_get(pontos_em, c))))));				
+			if(hash_get(em,vert_id(via_get_de(li_get_valor(list_get(vert_get_vias(li_get_valor(list_get(pontos_em,c))), b))))) != NULL && hash_get(em,vert_id(via_get_para(li_get_valor(list_get(vert_get_vias(li_get_valor(list_get(pontos_em,c))), b))))) != NULL)
+				cidade_insort_via(vias_em, li_get_valor(list_get(vert_get_vias(li_get_valor(list_get(pontos_em, c))), b)));				
 	}
 	hash_del_all(em);
 	return vias_em;
@@ -570,7 +594,7 @@ void * cidade_get_vias_em (void * pontos_em) {
 void * cidade_get_pontos_em (void * cid, float x, float y, float w, float h) {
 	printf("Área de busca:\t%f \t[(%f %f) (%f %f)]\n",h*w,x,y,x+w,y+h);
 	void * pontos = new_list(0);
-	printf("%d fileiras de pontos plausíveis.\n",arv_get_pontos_em(cidade_get_quadras_avl(cid),pontos,x,y,x+w,y+h));
+	printf("%d fileiras de pontos plausíveis.\n",arv_get_pontos_em(cidade_get_pontos(cid),pontos,x,y,x+w,y+h));
 	return pontos;
 }
 
@@ -741,12 +765,14 @@ void * cidade_caminho (void * cid, void * de, void * para, int tipo) {
 		cidade_set_vias_list(cid, new_list(0), tipo);
 		cidade_set_vias(cid, new_hash_table(cidade_get_tamanho(cid)), tipo);		
 	}
-	if(hash_get(cidade_get_vias(cid, tipo), vert_id(para)) == NULL)
+	if(hash_get(cidade_get_vias(cid, tipo), vert_id(para)) == NULL) {
+		printf("[%d] Procurando caminho de %s (%f %f) para %s (%f %f) \n",tipo,vert_id(de),vert_x(de),vert_y(de),vert_id(para),vert_x(para),vert_y(para));
 		dijkstra(de, para, cidade_get_vias_list(cid, tipo), cidade_get_vias(cid, tipo), tipo);
+	}	
 	void * c = hash_get(cidade_get_vias(cid, tipo), vert_id(para));	
 	void * caminho = new_list(0);
 	while(c != NULL) {
-		list_insert(caminho, c);
+		list_set(caminho, 0, c);
 		c = via_get_de(c);
 	}
 	return caminho;
@@ -788,7 +814,7 @@ void * cidade_get_ponto (void * cid, float x, float y) {
 
 int cidade_del_ponto (void * cid, float x, float y) {
 	void * a, * j;
-	void * l = arv_get(cidade_get_pontos(cid), x);
+	void * l = arv_get_valor(arv_get(cidade_get_pontos(cid), x));
 	int c, d = 0, b, i;
 	for(c = list_get_len(l) - 1; c >= 0; c--) 
 		if(vert_y(li_get_valor(list_get(l,c))) == y) {
@@ -814,12 +840,14 @@ int cidade_del_ponto (void * cid, float x, float y) {
 }
 
 void cidade_set_ponto (void * cid, void * p) {
+	if(cid == NULL)
+		return;
 	void * l = arv_get(cidade_get_pontos(cid),vert_x(p));
-	if(l == NULL && cid != NULL) {
+	if(l == NULL) {
 		l = new_list(0);
 		avl_add(&(((cidade*)cid)->pontos_avl),l,vert_x(p),vert_x(p),vert_x(p));
-	}	
+	} else l = arv_get_valor(l);	
 	if(p != NULL)
 		cidade_insort_ponto(l,p);
-	//	list_insert(l,p);
+	
 }

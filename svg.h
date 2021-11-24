@@ -1,5 +1,8 @@
 #ifndef __SVG__H
 #define __SVG__H
+#define HEX 8
+
+void hex64 (char *c, int v);
 
 
 void svg_open (void* arq);
