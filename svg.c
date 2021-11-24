@@ -92,8 +92,31 @@ void svg_line (void * svg, char * color, char * width, float xi, float yi, float
 
 }
 void svg_circle (void * arq, char * id, char * cp, char * cc, char * swid, float x, float y, float d) {
-	svg_ellipse(arq, id, cp, cc, swid, x, y, d, d);
+	svg_circle_open(arq, id, cp, cc, swid, x, y, d/2);
+	svg_circle_close(arq);
+	svg_text(arq, id, cc, 0, x, y);	
 }
+void svg_circle_open (void * svg, char * id, char * fill, char * stroke, char * swid, float x, float y, float r) {
+	if(svg == NULL)
+		return;
+	fprintf(svg,"\t\t<circle cx=\"%f\" cy=\"%f\" r=\"%f\" \tstyle=\"",x,y,r);	
+	if(fill != NULL)
+		fprintf(svg,"fill:%s;",fill);	
+	fprintf(svg,"stroke");
+	if(stroke == NULL)
+		fprintf(svg,"-opacity:0");
+	else fprintf(svg,":%s",stroke);
+	if(swid != NULL)
+		fprintf(svg,";stroke-width:%s",swid);
+	if(id != NULL)	
+		fprintf(svg,"\"\tid=\"%s",id);
+	fprintf(svg,"\">");
+}
+void svg_circle_close (void *svg) {
+	if(svg != NULL)
+		fprintf(svg,"</circle> \n");
+}
+
 void svg_ellipse (void * img, char * id, char * cp, char * cc, char * swid, float x, float y, float w, float h) {
 	svg_ellipse_open(img,id,cp,cc,swid,x,y,w,h);
 	svg_ellipse_close(img);

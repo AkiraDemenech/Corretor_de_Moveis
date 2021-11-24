@@ -22,6 +22,9 @@ void svg_ellipse_open (void * svg, char * id, char * fill, char * stroke, char *
 void svg_ellipse_close (void *svg);
 
 void svg_circle (void * arq, char * id, char * cp, char * cc, char * swid, float x, float y, float d);
+void svg_circle_open (void * svg, char * id, char * fill, char * stroke, char * swid, float x, float y, float r);
+void svg_circle_close (void *svg);
+
 void svg_line (void * svg, char * color, char * width, float xi, float yi, float xf, float yf);
 
 

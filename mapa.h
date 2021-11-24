@@ -71,4 +71,8 @@ void * cidade_caminho (void * cid, void * de, void * para, int tipo);
 void dijkstra (void * grafo, void * final, void * fila, void * caminhos, float cv);
 void * kruskal (void * vias, void * floresta);
 
+void * kosaraju (void * g);
+
+void arv_dfs (void * avl_vert, void * list_out, void * vert_visit);
+
 #endif

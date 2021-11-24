@@ -9,6 +9,31 @@
 #include"arq.h"
 #include"svg.h"
 
+void * cfc (void * grafo, void * componente, void * em_componentes) {	
+	if(hash_get(em_componentes, vert_id(grafo)) == NULL) {
+		if(componente == NULL)
+			componente = new_list(0);
+		list_add(componente, grafo);	
+		hash_set(em_componentes, vert_id(grafo), componente);
+		int c;
+		for(c = 0; c < list_get_len(vert_get_vias(grafo)); c++)
+			if(via_get_de(li_get_valor(list_get(vert_get_vias(grafo), c))) != grafo) 
+				cfc(via_get_de(li_get_valor(list_get(vert_get_vias(grafo),c))),componente,em_componentes);				
+	}
+	return componente;
+}
+
+void dfs (void * grafo, void * pilha, void * visitados) {
+	if(hash_get(visitados, vert_id(grafo)) == NULL) {
+		hash_set(visitados, vert_id(grafo), grafo);
+		int c;
+		for(c = 0; c < list_get_len(vert_get_vias(grafo)); c++) 
+			if(via_get_para(li_get_valor(list_get(vert_get_vias(grafo), c))) != grafo)
+				dfs(via_get_para(li_get_valor(list_get(vert_get_vias(grafo),c))),pilha,visitados);
+		list_add(pilha, grafo);
+	}
+}
+
 void dijkstra (void * grafo, void * final, void * fila, void * caminhos, float cv) {
 	if(grafo == NULL || caminhos == NULL)
 		return;		
@@ -128,7 +153,27 @@ void * kruskal (void * vias, void * floresta) {
 
 }
 
+void * kosaraju (void * g) {
+	void * componentes = new_list(0);
+	void * visitados = new_hash_table(127 + list_get_len(componentes));
 
+	arv_dfs(g, componentes, visitados);	
+
+	int c = list_get_len(componentes);
+	void * comp;
+	hash_del_all(visitados);
+	visitados = new_hash_table(c);
+	
+	while(c > 0) { 
+		c--;
+		comp = cfc(li_get_valor(list_get(componentes, c)), NULL, visitados);
+		list_del(componentes, c);
+		if(comp != NULL)
+			list_add(componentes, comp);
+	}	
+	hash_del_all(visitados);
+	return componentes;
+}
 
 void * list_get_quadra (void * lista, float y) {
 	return list_get(lista,busca_bin_quadra(lista,y));
@@ -212,6 +257,16 @@ void arv_del_listas (void * avl) {
 		arv_del_listas(arv_get_dir(avl));
 		avl = arv_get_esq(avl);
 	}	
+}
+
+void arv_dfs (void * avl_vert, void * list_out, void * vert_visit) {
+	int c;
+	while(avl_vert != NULL) {
+		for(c = 0; c < list_get_len(arv_get_valor(avl_vert)); c++)
+			dfs(li_get_item(list_get(arv_get_valor(avl_vert), c)), list_out, vert_visit);
+		arv_dfs(arv_get_dir(avl_vert), list_out, vert_visit);	
+		avl_vert = arv_get_esq(avl_vert);
+	}
 }
 
 int arv_get_pontos_em (void * avl_in, void * list_out, float xi, float yi, float xf, float yf) {
