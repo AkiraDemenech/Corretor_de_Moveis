@@ -45,11 +45,11 @@ void vert_set_vias (void * v, void * caminhos) {
 
 void * new_vert (char * id, float x, float y) {
 	vertex * v = malloc(sizeof(vertex));
-	vert_set_vias(v, new_list(0));
+	vert_set_vias(v, NULL);
 	if(v != NULL) {
 		v->id = id;
 		v->x = x;
-		v->y = y;
+		v->y = y;		
 	}
 	return v;
 }

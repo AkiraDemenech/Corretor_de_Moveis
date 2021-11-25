@@ -51,7 +51,7 @@ try:
 			break
 			
 		for qry in qrys:		
-			linha = f'{src}/{progr} -e {bed} -q {nomeGEO[0]}/{qry} -o {bsd} -f {geo} -via {nomeGEO[0]}-v.via'
+			linha = f'{src}/{progr} -e {bed} -q {nomeGEO[0]}/{qry} -o {bsd} -f {geo} -v {nomeGEO[0]}-v.via'
 			print(c,'\t',geo,'\t',qry)
 			
 			q = set()

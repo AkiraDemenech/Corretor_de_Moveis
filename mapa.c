@@ -476,8 +476,7 @@ void cidade_vias (void * cid, char * vias) {
 			case 'v':				
 				clean(cep,CEP_TAM);
 				fscanf(pes,"%s %f %f",cep,&a,&b);
-				m = new_vert(malloc(sizeof(char) * (1 + comprimento(cep))), a, b);		//*/
-				vert_set_vias(m, new_list(0));
+				m = new_vert(malloc(sizeof(char) * (1 + comprimento(cep))), a, b);		//*/				
 				copy(cep, vert_id(m));			
 				hash_set(pontos,vert_id(m),m);
 				cidade_set_ponto(cid,m);
@@ -493,15 +492,19 @@ void cidade_vias (void * cid, char * vias) {
 				fscanf(pes,"%s %s %s %s %f %f %s",i,f,k,cep,&a,&b,l);
 				m = new_via(malloc(sizeof(char) * (1 + comprimento(l))),malloc(sizeof(char) * (comprimento(k) + 1)),malloc(sizeof(char) * (comprimento(cep) + 1)));				
 				n = hash_get(pontos, i);
-				via_set_de(m, n);
-				list_insert(vert_get_vias(n), m);
+				via_set_de(m, n);				
 				if(n == NULL)
 					printf("\tPonto i %s não encontrado\n",i);
+				else if(vert_get_vias(n) == NULL)
+					vert_set_vias(n, new_list(0));
+				list_insert(vert_get_vias(n), m);	
 				n = hash_get(pontos,f);	
-				via_set_para(m,n);
-				list_insert(vert_get_vias(n),m);
+				via_set_para(m,n);				
 				if(n == NULL)
 					printf("\tPonto j %s não encontrado\n",f);					
+				else if(vert_get_vias(n) == NULL)
+					vert_set_vias(n, new_list(0));	
+				list_insert(vert_get_vias(n),m);	
 				via_set_cmp(m,a);	
 				via_set_vm(m, b);
 				copy(l, via_nome(m));
@@ -832,10 +835,19 @@ int cidade_del_ponto (void * cid, float x, float y) {
 						list_del(vert_get_vias(j), i); // remover as arestas que possuem o vértice removido nas listas dos outros vértices
 						d++;
 					}	
+				if(list_get_len(vert_get_vias(j)) <= 0) {
+					list_del_all(vert_get_vias(j));
+					vert_set_vias(j, NULL);
+				}	
 			}
 			list_del_all(vert_get_vias(li_get_valor(list_get(l,c))));
+			vert_set_vias(li_get_valor(list_get(l,c)), NULL);
 			list_del(l, c);					
 		}	
+	if(list_get_len(l) <= 0) {	 
+		list_del_all(l);
+		arv_set_valor(arv_get(cidade_get_pontos(cid), x), NULL);
+	}	
 	return d;	
 }
 
