@@ -16,13 +16,14 @@ void cx_svg (FILE * svg, void * compfortconex) {
 	int c = list_get_len(compfortconex), i;
 	while(c > 0) {
 		hex64(cor, c);
+	
 		c--;
 		for(i = 0; i < list_get_len(li_get_valor(list_get(compfortconex, c))); i++) 
-			svg_ellipse(svg,NULL,cor,NULL,NULL,vert_x(list_get(li_get_valor(list_get(compfortconex,c)),i))-5,vert_y(list_get(li_get_valor(list_get(compfortconex,c)),i))-5,10+i,10+c);		
+			svg_ellipse(svg,NULL,cor,NULL,NULL,vert_x(li_get_valor(list_get(li_get_valor(list_get(compfortconex,c)),i)))-5,vert_y(li_get_valor(list_get(li_get_valor(list_get(compfortconex,c)),i)))-5,16+(i%6),12+(c%4));		
 	}
 }
 
-int rv (FILE * svg, FILE * txt, void * arv, void * raiz, char * cor, float fator) {
+int rv (FILE * svg, FILE * txt, void * vis, void * arv, void * raiz, char * cor, float fator) {
 	if(raiz == NULL || txt == NULL)
 		return -2;
 	svg_circle(svg,NULL,cor,cor,NULL,vert_x(raiz),vert_y(raiz),10);	
@@ -52,15 +53,16 @@ int rv (FILE * svg, FILE * txt, void * arv, void * raiz, char * cor, float fator
 			prox = via_get_para(li_get_valor(list_get(adj, c)));
 			if(prox == raiz)
 				prox = via_get_de(li_get_valor(list_get(adj, c)));
+			if(hash_get(vis, vert_id(prox)) != NULL)	
+				continue;
+			hash_set(vis, vert_id(prox), raiz);	
 			list_add(fila, prox);	
 
 			via_set_vm(li_get_valor(list_get(adj,c)),reduz*via_get_vm(li_get_valor(list_get(adj,c))));
 			svg_line(svg,cor,"4px",vert_x(via_get_de(li_get_valor(list_get(adj,c)))),vert_y(via_get_de(li_get_valor(list_get(adj,c)))),vert_x(via_get_para(li_get_valor(list_get(adj,c)))),vert_y(via_get_para(li_get_valor(list_get(adj,c)))));
 			fprintf(txt,"\n\tDe:\t%s\t(%f %f)\n\tPara:\t%s\t(%f %f)\n\t%f m\t(%f m/s)\n\t %s %s\n",vert_id(via_get_de(li_get_valor(list_get(adj,c)))),vert_x(via_get_de(li_get_valor(list_get(adj,c)))),vert_y(via_get_de(li_get_valor(list_get(adj,c)))),vert_id(via_get_para(li_get_valor(list_get(adj,c)))),vert_x(via_get_para(li_get_valor(list_get(adj,c)))),vert_y(via_get_para(li_get_valor(list_get(adj,c)))),via_get_cmp(li_get_valor(list_get(adj,c))),via_get_vm(li_get_valor(list_get(adj,c))),via_esq(li_get_valor(list_get(adj,c))),via_dir(li_get_valor(list_get(adj,c))));
-		}
-
-		
-		decremento_prox += c;		
+			decremento_prox++;
+		}						
 		decremento_em--;
 	}
 	list_del_all(fila);
@@ -145,19 +147,23 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 			//	list_del_all(n);
 				r = new_list(0);
 				a = kruskal(m, r);
+				b = new_hash_table(list_get_len(r));
 				printf("%d árvores geradoras mínimas na área \n", list_get_len(r));
 				fprintf(txt_out,"%d árvores geradoras mínimas:\n",list_get_len(r));
-				for(c = 0; c < list_get_len(r); c++) {
-					d = rv(svg_out, txt_out, a, via_get_de(li_get_valor(list_get(li_get_valor(list_get(r, c)), 0))), "hotpink", f); 
-					fprintf(txt_out, "\n%d velocidades reduzidas. \n", d);
+				for(c = 0; c < list_get_len(n); c++) {
+					if(hash_get(b,vert_id(li_get_valor(list_get(n,c))))!=NULL)
+						continue;
+					d = rv(svg_out, txt_out, b, a, li_get_valor(list_get(n, c)), "hotpink", f); 
+					fprintf(txt_out, "\n%d velocidades reduzidas. \nRaiz:\t%s\n", d, vert_id(li_get_valor(list_get(n, c))));
 					if(d > 0) {
 						if(cidade_get_vias_cmp(cid) != NULL)
 							printf("invalidando caminhos mais rápidos.\n");
 						hash_del_all(cidade_get_vias_cmp(cid));	
 						cidade_set_vias_cmp(cid, NULL);
 					}
-					list_del_all(li_get_valor(list_get(r,c)));
+					
 				}
+				hash_del_all(b);
 				hash_del_all(a);
 				list_del_all(n);
 				list_del_all(m);
@@ -178,9 +184,10 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 					list_del_all(cx2);
 					cx2 = kosaraju(cidade_get_pontos(cid),u);
 					for(c = 0; c < list_get_len(cx2); c++) {
-						fprintf(txt_out, "\nRegião %d\t[%d vértices]: \n", c, list_get_len(li_get_valor(list_get(cx2, c))));
+						hex64(cep, c + 1);
+						fprintf(txt_out, "\n\t%s\tRegião %d\t[%d vértices]: \n", cep, c, list_get_len(li_get_valor(list_get(cx2, c))));
 						for(d = 0; d < list_get_len(li_get_valor(list_get(cx2, c))); d++) 
-							fprintf(txt_out,"%s\t(%f %f)\n",vert_id(li_get_valor(list_get(li_get_valor(list_get(cx2,c)),d))),vert_x(li_get_valor(list_get(li_get_valor(list_get(cx2,c)),d))),vert_y(li_get_valor(list_get(li_get_valor(list_get(cx2,c)),d))));
+							fprintf(txt_out,"\t%s\t(%f %f)\n",vert_id(li_get_valor(list_get(li_get_valor(list_get(cx2,c)),d))),vert_x(li_get_valor(list_get(li_get_valor(list_get(cx2,c)),d))),vert_y(li_get_valor(list_get(li_get_valor(list_get(cx2,c)),d))));
 					}
 					fprintf(txt_out,"\n%d regiões isoladas encontradas. \n",list_get_len(cx2));
 					qtd_cx++;

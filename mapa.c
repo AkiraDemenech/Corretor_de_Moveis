@@ -29,7 +29,7 @@ void dfs (void * grafo, void * pilha, void * visitados, float vmin) {
 		int c;
 		for(c = 0; c < list_get_len(vert_get_vias(grafo)); c++) {
 			if(via_get_vm(li_get_valor(list_get(vert_get_vias(grafo), c))) < vmin) {
-				via_estilo(li_get_valor(list_get(vert_get_vias(grafo),c)),"red","3px");
+				via_estilo(li_get_valor(list_get(vert_get_vias(grafo),c)),"red","5px");
 				continue;
 			}
 			if(via_get_para(li_get_valor(list_get(vert_get_vias(grafo), c))) != grafo)
@@ -103,22 +103,23 @@ void * kruskal (void * vias, void * floresta) {
 	if(list_get_len(vias) <= 0 || floresta == NULL)
 		return NULL;
 
+	void * r = new_hash_table(list_get_len(vias));
 	void * em_qual = new_hash_table(list_get_len(vias));
 	void * de;
 	void * para;
-	void * r;
+	
 
 	int c, d;
 	for(c = 0; c < list_get_len(vias); c++) {
 		de = hash_get(em_qual, vert_id(via_get_de(li_get_valor(list_get(vias, c)))));
 		para = hash_get(em_qual, vert_id(via_get_para(li_get_valor(list_get(vias, c)))));
-	//	printf("%p %p\t[%d]\t%s\t%s\n",de,para,c,vert_id(via_get_de(li_get_valor(list_get(vias,c)))),vert_id(via_get_para(li_get_valor(list_get(vias,c)))));
+	
 		if(de == NULL) {
 			if(para == NULL) {
 				para = new_list(0);
 				list_add(floresta, para);				
 				hash_set(em_qual, vert_id(via_get_para(li_get_valor(list_get(vias, c)))), para);
-			//	printf("%p %p\n",de,para);
+			
 			} 			
 			list_add(para,li_get_valor(list_get(vias,c)));
 			hash_set(em_qual, vert_id(via_get_de(li_get_valor(list_get(vias,c)))), para);			
@@ -126,8 +127,8 @@ void * kruskal (void * vias, void * floresta) {
 			hash_set(em_qual, vert_id(via_get_para(li_get_valor(list_get(vias,c)))), de);
 			list_add(de,li_get_valor(list_get(vias,c)));
 		} else if(para != de) { 
-		//	printf("Agora vamos tentar unir duas árvores\n");			
-		//	hash_set(em_qual,vert_id(via_get_de(li_get_valor(list_get(vias,c)))),para);
+					
+		
 			list_add(para, li_get_valor(list_get(vias, c)));
 			d = list_get_len(floresta);
 			while(d > 0) {
@@ -139,44 +140,32 @@ void * kruskal (void * vias, void * floresta) {
 				list_add(para, li_get_valor(list_get(de, d)));
 				hash_set(em_qual, vert_id(via_get_de(li_get_valor(list_get(de,d)))), para);
 				hash_set(em_qual,vert_id(via_get_para(li_get_valor(list_get(de,d)))),para);
-			//	printf("[%d]\n%p\t%s\n%p\t%s\n",d,hash_get(em_qual,vert_id(via_get_de(li_get_valor(list_get(de,d))))),vert_id(via_get_de(li_get_valor(list_get(de,d)))),hash_get(em_qual,vert_id(via_get_para(li_get_valor(list_get(de,d))))),vert_id(via_get_para(li_get_valor(list_get(de,d)))));
+			
 			}				
 			list_del_all(de);				
-		}			
+		} else continue;			
+
+		de = hash_get(r, vert_id(via_get_de(li_get_valor(list_get(vias, c)))));
+		para = hash_get(r, vert_id(via_get_para(li_get_valor(list_get(vias, c)))));
+	
+		if(de == NULL) {
+			de = new_list(0);
+			hash_set(r,vert_id(via_get_de(li_get_valor(list_get(vias,c)))),de);
+		}
+
+		if(para == NULL) {
+			para = new_list(0);
+			hash_set(r,vert_id(via_get_para(li_get_valor(list_get(vias,c)))),para);
+		}
+
+		list_insert(para,li_get_valor(list_get(vias,c)));
+		list_insert(de, li_get_valor(list_get(vias, c)));
 	}	
 
 	hash_del_all(em_qual);
-	em_qual = new_hash_table(list_get_len(floresta));
-	r = new_hash_table(list_get_len(floresta));
+	
 
-	for(c = 0; c < list_get_len(floresta); c++) { 
-		hash_set(r, vert_id(via_get_de(li_get_valor(list_get(li_get_valor(list_get(floresta, c)), 0)))), r);
-	//	printf("\tRaiz: %p %s\n",r,vert_id(r));
-		for(d = 0; d < list_get_len(li_get_valor(list_get(floresta, c))); d++) {
-			para = hash_get(em_qual,vert_id(via_get_para(li_get_valor(list_get(li_get_valor(list_get(floresta,c)),d)))));
-			de = hash_get(em_qual,vert_id(via_get_de(li_get_valor(list_get(li_get_valor(list_get(floresta,c)),d)))));			
-			if(hash_get(r, vert_id(via_get_de(li_get_valor(list_get(li_get_valor(list_get(floresta, c)), d))))) != NULL) {// || r == via_get_de(li_get_valor(list_get(li_get_valor(list_get(floresta,c)),d)))) {				
-				if(de == NULL) {
-					de = new_list(0);
-					hash_set(em_qual, vert_id(via_get_de(li_get_valor(list_get(li_get_valor(list_get(floresta, c)), d)))), de);					
-				}
-				list_add(de, li_get_valor(list_get(li_get_valor(list_get(floresta, c)), d)));
-				hash_set(r,vert_id(via_get_para(li_get_valor(list_get(li_get_valor(list_get(floresta, c)),d)))),r);
-			} else {
-				if(para == NULL) {
-					para = new_list(0);
-					hash_set(em_qual, vert_id(via_get_para(li_get_valor(list_get(li_get_valor(list_get(floresta, c)), d)))), para);
-				}
-				if(hash_get(r, vert_id(via_get_para(li_get_valor(list_get(li_get_valor(list_get(floresta, c)), d))))) != NULL) 
-					hash_set(r,vert_id(via_get_de(li_get_valor(list_get(li_get_valor(list_get(floresta, c)),d)))),r);			 
-				list_add(para, li_get_valor(list_get(li_get_valor(list_get(floresta, c)), d)));
-			}								
-		//	printf("\tListas: %p %p\n",de,para);
-		}	
-	}	
-	hash_del_all(r);
-
-	return em_qual;
+	return r;
 
 }
 
@@ -187,6 +176,7 @@ void * kosaraju (void * g, float limiar) {
 	arv_dfs(g, componentes, visitados, limiar);	
 
 	int c = list_get_len(componentes);
+	int i;
 	void * comp;
 	hash_del_all(visitados);
 	visitados = new_hash_table(c);
@@ -195,8 +185,12 @@ void * kosaraju (void * g, float limiar) {
 		c--;
 		comp = cfc(li_get_valor(list_get(componentes, c)), NULL, visitados, limiar);
 		list_del(componentes, c);
-		if(comp != NULL)
-			list_add(componentes, comp);
+		if(comp != NULL) {
+			for(i = c; i < list_get_len(componentes); i++)
+				if(list_get_len(li_get_valor(list_get(componentes, i))) >= list_get_len(comp))
+					break;
+			list_set(componentes, i, comp);
+		}	
 	}	
 	hash_del_all(visitados);
 	return componentes;

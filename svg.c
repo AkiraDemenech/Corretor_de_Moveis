@@ -147,9 +147,18 @@ void svg_ellipse_close (void *svg) {
 void hex64 (char *c, int v) {
 	c[HEX - 1] = '\0';
 	*c = '#';
+	
+	int u;
 	int i;
 	for(i = 1; i <= HEX - 2; i++) {
 		c[i] = (v % 2) * ('F' - '0') + '0';
 		v /= 2;
 	}	
+	for(u = 2; u <= 3; u++) 
+		for(i = HEX - u; i > 2; i -= 2)
+			if(c[i] != c[i - 2])
+				return;
+	i = 1 + (v % (HEX - 2));			
+	c[i] = (c[i] == '0') ? ('f') : ('0');
+//	printf(c);
 }
