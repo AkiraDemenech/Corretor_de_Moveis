@@ -18,6 +18,7 @@ void ** hash_v_get_list (tabela * t, int pos) {
 
 void * new_hash_table (int size) {	
 	tabela * t = (tabela*)malloc(sizeof(tabela));
+	t->chaves = new_list(0);
 	t->vetor = calloc(size,sizeof(void*));		
 	t->len = size;
 //	while(size > 0) 	t->vetor[--size] = new_list(0);	
@@ -71,10 +72,17 @@ void hash_set (void * tabesp, char * chave, void * valor) {
 	if(tabesp == NULL) 
 		return;	
 
+	int c;
 	int h = hash(chave) % hash_get_len(tabesp);	
 	void ** l = hash_v_get_list(tabesp, h);
 	if(*l == NULL)
 		*l = new_list(0);
+	else for(c = 0; c < list_get_len(*l); c++) 		
+			if(compare(li_get_chave(list_get(*l, c)), chave) == 0) {
+			//	printf("Atualizando %s de %p para %p \n", chave, li_get_valor(list_get(*l, c)), valor);
+				li_set_valor(list_get(*l,c),valor);
+				return; // */
+			}			
 //	else printf("[%d]\tColisão!\t %s\tjá existentes %d com mesma hash \n",h,chave,list_get_len(*l));	
 //	printf("{%d}[%d]\n",h,list_get_len(*l));
 	list_insert(((tabela*)tabesp)->chaves,chave);

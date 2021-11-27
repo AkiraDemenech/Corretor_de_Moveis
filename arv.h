@@ -31,6 +31,7 @@ void * avl_insert_all (void * raiz, void * tudo);
 
 float arv_get_chave (void * no); //	retorna a chave de um dado nó
 void* arv_get_valor (void * no); //	retorna o valor armazenado por um nó dado
+void arv_set_valor (void * no, void * valor);
 
 int avl_dif_alt (void * a);
 

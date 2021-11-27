@@ -9,6 +9,7 @@
 #include "svg.h"
 #include "arq.h"
 #include "arv.h"
+#define MIN 0.01
 
 void cx_svg (FILE * svg, void * compfortconex) {
 	char cor[HEX];
@@ -21,6 +22,50 @@ void cx_svg (FILE * svg, void * compfortconex) {
 	}
 }
 
+int rv (FILE * svg, FILE * txt, void * arv, void * raiz, char * cor, float fator) {
+	if(raiz == NULL || txt == NULL)
+		return -2;
+	svg_circle(svg,NULL,cor,cor,NULL,vert_x(raiz),vert_y(raiz),10);	
+	int c;
+	int reduzidos = -1, decremento_em = 0, decremento_prox = 1;
+	float reduz = 1;
+	void * fila = new_list(0);
+	void * adj, * prox;
+	list_add(fila, raiz);
+	while(list_get_len(fila) > 0) {
+		raiz = li_get_valor(list_get(fila, 0));
+		adj = hash_get(arv, vert_id(raiz));
+		list_del(fila, 0);
+		
+
+		if(decremento_em == 0) {			
+			reduzidos += decremento_prox;
+			reduz -= fator;
+			if(reduz <= MIN) 
+				reduz = MIN;
+			else decremento_em = decremento_prox;	
+			decremento_prox = 0;
+			fprintf(txt, "\n\tReduzindo a %f%%: \n", reduz * 100);
+		}
+		
+		for(c = 0; c < list_get_len(adj); c++) {
+			prox = via_get_para(li_get_valor(list_get(adj, c)));
+			if(prox == raiz)
+				prox = via_get_de(li_get_valor(list_get(adj, c)));
+			list_add(fila, prox);	
+
+			via_set_vm(li_get_valor(list_get(adj,c)),reduz*via_get_vm(li_get_valor(list_get(adj,c))));
+			svg_line(svg,cor,"4px",vert_x(via_get_de(li_get_valor(list_get(adj,c)))),vert_y(via_get_de(li_get_valor(list_get(adj,c)))),vert_x(via_get_para(li_get_valor(list_get(adj,c)))),vert_y(via_get_para(li_get_valor(list_get(adj,c)))));
+			fprintf(txt,"\n\tDe:\t%s\t(%f %f)\n\tPara:\t%s\t(%f %f)\n\t%f m\t(%f m/s)\n\t %s %s\n",vert_id(via_get_de(li_get_valor(list_get(adj,c)))),vert_x(via_get_de(li_get_valor(list_get(adj,c)))),vert_y(via_get_de(li_get_valor(list_get(adj,c)))),vert_id(via_get_para(li_get_valor(list_get(adj,c)))),vert_x(via_get_para(li_get_valor(list_get(adj,c)))),vert_y(via_get_para(li_get_valor(list_get(adj,c)))),via_get_cmp(li_get_valor(list_get(adj,c))),via_get_vm(li_get_valor(list_get(adj,c))),via_esq(li_get_valor(list_get(adj,c))),via_dir(li_get_valor(list_get(adj,c))));
+		}
+
+		
+		decremento_prox += c;		
+		decremento_em--;
+	}
+	list_del_all(fila);
+	return reduzidos;
+}
 
 int del (void * cidade, char * cep, FILE * res) {
 	if(cep == NULL || res == NULL)
@@ -63,7 +108,7 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 	unsigned int qtd_catac = 0, qtd_del = 0, qtd_cx = 0, qtd_rv = 0, qtd_o = 0, qtd_p = 0;
 	int id_tam = 3*CEP_TAM, linha = 0;
 	int c,d,com_tam = 2*COM_TAM;
-	float s,t,u,v;
+	float s,t,u,v,f;
 	void *r;
 	char *m,*n;
 	char cep[CEP_TAM];
@@ -88,19 +133,33 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 				break;	
 
 			case 'r': // rv	
-				fscanf(q, "%f %f %f %f", &u, &v, &t, &s);
-				fprintf(txt_out, "\nrv\t%f %f %f %f\n", u, v, t, s);
-				printf("\n%u\trv\t%f %f %f %f\n", exec, u, v, t, s);
-				svg_rect_open(svg_out, com, NULL, "#AB37C8", "2px", u, v, t, s, 0.75, 4);
+				fscanf(q, "%f %f %f %f %f", &u, &v, &t, &s, &f);
+				fprintf(txt_out, "\nrv\t%f %f %f %f %f\n", u, v, t, s, f);
+				printf("\n%u\trv\t%f %f %f %f %f\n", exec, u, v, t, s, f);
+				svg_rect_open(svg_out, com, NULL, "#AB37C8", "5px", u, v, t, s, 1, 10);
 				svg_rect_close(svg_out);
 				n = cidade_get_pontos_em(cid, u, v, t, s);
 				m = cidade_get_vias_em(n);
-				list_del_all(n);
+				if(f < 0 || f > 1)
+					printf("fator f %f fora do domínio.\n",f);
+			//	list_del_all(n);
 				r = new_list(0);
-				n = kruskal(m, r);
-				printf("%d árvores geradoras mínimas na área:\n",list_get_len(r));
-
-				hash_del_all(n);
+				a = kruskal(m, r);
+				printf("%d árvores geradoras mínimas na área \n", list_get_len(r));
+				fprintf(txt_out,"%d árvores geradoras mínimas:\n",list_get_len(r));
+				for(c = 0; c < list_get_len(r); c++) {
+					d = rv(svg_out, txt_out, a, via_get_de(li_get_valor(list_get(li_get_valor(list_get(r, c)), 0))), "hotpink", f); 
+					fprintf(txt_out, "\n%d velocidades reduzidas. \n", d);
+					if(d > 0) {
+						if(cidade_get_vias_cmp(cid) != NULL)
+							printf("invalidando caminhos mais rápidos.\n");
+						hash_del_all(cidade_get_vias_cmp(cid));	
+						cidade_set_vias_cmp(cid, NULL);
+					}
+					list_del_all(li_get_valor(list_get(r,c)));
+				}
+				hash_del_all(a);
+				list_del_all(n);
 				list_del_all(m);
 				list_del_all(r);
 				exec++;
@@ -112,8 +171,18 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 				if(com[1] == 'x') { // cx
 					fprintf(txt_out,"\ncx\t%f\n",u);
 					printf("\n%u\tcx\t%f\n",exec,u);
+					if(cx2 != NULL) {
+						fprintf(txt_out,"recalculando regiões isoladas\n");
+						printf("recalculando regiões isoladas....\n");
+					}	
 					list_del_all(cx2);
 					cx2 = kosaraju(cidade_get_pontos(cid),u);
+					for(c = 0; c < list_get_len(cx2); c++) {
+						fprintf(txt_out, "\nRegião %d\t[%d vértices]: \n", c, list_get_len(li_get_valor(list_get(cx2, c))));
+						for(d = 0; d < list_get_len(li_get_valor(list_get(cx2, c))); d++) 
+							fprintf(txt_out,"%s\t(%f %f)\n",vert_id(li_get_valor(list_get(li_get_valor(list_get(cx2,c)),d))),vert_x(li_get_valor(list_get(li_get_valor(list_get(cx2,c)),d))),vert_y(li_get_valor(list_get(li_get_valor(list_get(cx2,c)),d))));
+					}
+					fprintf(txt_out,"\n%d regiões isoladas encontradas. \n",list_get_len(cx2));
 					qtd_cx++;
 				} else { // catac
 					fscanf(q, "%f %f %f", &v, &t, &s);
@@ -126,19 +195,27 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 					printf("%d quadras inteiramente na área.\n", list_get_len(r));
 					for(c = 0; c < list_get_len(r); c++) 
 						d += del(cid, quadra_get_cep(li_get_valor(list_get(r, c))), txt_out);				
+					fprintf(txt_out,"\n%d quadras apagadas.\n",d);
 					printf("%d quadras apagadas \n",d);	
 					r = cidade_get_pontos_em(cid,u,v,t,s);
 					printf("%d vértices inteiramente na área.\n", list_get_len(r));	
 					for(c = 0; c < list_get_len(r); c++) { 
-						d = cidade_del_ponto(cid, vert_x(li_get_valor(list_get(r, c))), vert_y(li_get_valor(list_get(r, c))));
-						printf("\t%d referências a arestas apagadas em %s \n", d, vert_id(li_get_valor(list_get(r, c))));
-						if(d > 0) for(d = 0; d < 2; d++) {
-							if(cidade_get_vias(cid, d) != NULL)
-								printf("[%d]\tInvalidando caminhos calculados\n",d);
-							hash_del_all(cidade_get_vias(cid, d));
-							cidade_set_vias(cid, NULL, d);	
+						fprintf(txt_out,"\n\n\tDe:\t%s\n\t(%f %f)\n",vert_id(li_get_valor(list_get(r,c))),vert_x(li_get_valor(list_get(r,c))),vert_y(li_get_valor(list_get(r,c))));
+						for(d = 0; d < list_get_len(vert_get_vias(li_get_valor(list_get(r,c)))); d++) 
+							if(via_get_de(li_get_valor(list_get(vert_get_vias(li_get_valor(list_get(r,c))),d))) == li_get_valor(list_get(r,c)))
+								fprintf(txt_out,"\n\tPara:\t%s\n\t%f m\t(%f m/s)\n\t %s %s \n",vert_id(via_get_para(li_get_valor(list_get(vert_get_vias(li_get_valor(list_get(r,c))),d)))),via_get_cmp(li_get_valor(list_get(vert_get_vias(li_get_valor(list_get(r,c))),d))),via_get_vm(li_get_valor(list_get(vert_get_vias(li_get_valor(list_get(r,c))),d))),via_esq(li_get_valor(list_get(vert_get_vias(li_get_valor(list_get(r,c))),d))),via_dir(li_get_valor(list_get(vert_get_vias(li_get_valor(list_get(r,c))),d))));							
+						d = cidade_del_ponto(cid, vert_x(li_get_valor(list_get(r, c))), vert_y(li_get_valor(list_get(r, c))));						 						
+						if(d > 0) { 
+							printf("\t%d referências a arestas apagadas em %s \n", d, vert_id(li_get_valor(list_get(r, c))));
+							for(d = 0; d < 2; d++) {
+								if(cidade_get_vias(cid, d) != NULL)
+									printf("[%d]\tInvalidando caminhos calculados\n",d);
+								hash_del_all(cidade_get_vias(cid, d));
+								cidade_set_vias(cid, NULL, d);	
+							}	
 						}
 					}	
+					fprintf(txt_out,"\n\n%d vértices apagados. \n",list_get_len(r));
 					qtd_catac++;
 				}				
 				exec++;
