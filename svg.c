@@ -80,7 +80,7 @@ void svg_rect_close (void *svg) {
 		fprintf(svg,"</rect> \n");
 }
 
-void svg_line (void * svg, char * color, char * width, float xi, float yi, float xf, float yf) {
+void svg_line (void * svg, char * color, char * width, float xi, float yi, float xf, float yf, float dash) {
 	if(svg == NULL)
 		return;
 	fprintf(svg,"\t\t<line x1=\"%f\" x2=\"%f\" y1=\"%f\" y2=\"%f\"\tstroke=\"",xi,xf,yi,yf);	
@@ -89,6 +89,8 @@ void svg_line (void * svg, char * color, char * width, float xi, float yi, float
 	else fprintf(svg, color);
 	if(width != NULL)	
 		fprintf(svg,"\" stroke-width=\"%s",width);
+	if(dash >= 0)
+		fprintf(svg,"\" stroke-dasharray=\"%f",dash);	
 	fprintf(svg,"\"/>\n");	
 
 }
@@ -142,6 +144,58 @@ void svg_ellipse_open (void * svg, char * id, char * fill, char * stroke, char *
 void svg_ellipse_close (void *svg) {
 	if(svg != NULL)
 		fprintf(svg,"</ellipse> \n");
+}
+
+
+void svg_path_open (void * img) {
+	if(img != NULL) 
+		fprintf(img, "<path");	
+}
+void svg_path_id_open (void * img) {
+	if(img != NULL) 
+		fprintf(img, " id=\"");
+	
+}
+void svg_path_points_open (void * img) {
+	if(img != NULL) 
+		fprintf(img, "\"\td=\"");	
+}
+void svg_path_point (void * img, char t, float x, float y) {
+	if(img != NULL) 
+		fprintf(img, "%c %f,%f ", t, x, y);
+}
+void svg_path_close (void * img, char * stroke, char * width) {
+	if(img != NULL) {
+		fprintf(img, "\"\tfill=\"none\"");
+		if(stroke != NULL)
+			fprintf(img," stroke=\"%s\"",stroke);
+		if(width != NULL)
+			fprintf(img," stroke-width=\"%s\"",width);
+		fprintf(img, " />\n");		
+	}	
+	
+}
+
+void svg_animation_open (void * img, char * repeat, float duration) {
+	if(img != NULL) {
+		fprintf(img, "\t<animateMotion dur=\"%fs\"",duration);
+		if(repeat != NULL)
+			fprintf(img,"\trepeatCount=\"%s\"",repeat);
+		fprintf(img, "> \n");	
+	}
+}
+void svg_animation_path_open (void * img) {
+	if(img != NULL)
+		fprintf(img, "\t\t<mpath xlink:href=\"#");
+}
+void svg_animation_path_close (void * img) {
+	if(img != NULL)
+		fprintf(img, "\"/>\t\n");
+}
+void svg_animation_close (void * img) {
+	if(img != NULL) 
+		fprintf(img,"\t</animateMotion>\n");	
+	
 }
 
 void hex64 (char *c, int v) {

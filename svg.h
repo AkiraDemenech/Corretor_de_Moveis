@@ -28,7 +28,18 @@ void svg_circle (void * arq, char * id, char * cp, char * cc, char * swid, float
 void svg_circle_open (void * svg, char * id, char * fill, char * stroke, char * swid, float x, float y, float r);
 void svg_circle_close (void *svg);
 
-void svg_line (void * svg, char * color, char * width, float xi, float yi, float xf, float yf);
+void svg_animation_open (void * img, char * repeat, float duration);
+void svg_animation_path_open (void * img);
+void svg_animation_path_close (void * img);
+void svg_animation_close (void * img);
+
+void svg_path_open (void * img);
+void svg_path_id_open (void * img);
+void svg_path_points_open (void * img);
+void svg_path_point (void * img, char t, float x, float y);
+void svg_path_close (void * img, char * stroke, char * width);
+
+void svg_line (void * svg, char * color, char * width, float xi, float yi, float xf, float yf, float dash);
 
 
 #endif

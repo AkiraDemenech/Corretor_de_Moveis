@@ -57,18 +57,20 @@ void dijkstra (void * grafo, void * final, void * fila, void * caminhos, float c
 		via_set_vm(v, 0);
 		list_add(fila,v);
 	} else v = NULL;	
-	while(list_get_len(fila) > 0 && via_get_para(via_get_para(v)) != final) {
+//	printf("[%d]\t começando.... \n%p\n%p\n",list_get_len(fila),grafo,final);
+	while(list_get_len(fila) > 0 && grafo != final) {
 		// enquanto houverem vértices na lista para verificar
 		v = li_get_valor(list_get(fila, 0));
 		grafo = via_get_para(via_get_para(v));
+		
 		// guardamos o caminho atual e seu vértice de destino (origem para os próximos caminhos verificados)
 		for(i = 0; i < list_get_len(vert_get_vias(grafo)); i++) // para todas as vias deste vértice
-			if(via_get_para(li_get_valor(list_get(vert_get_vias(grafo), i))) != grafo && li_get_valor(list_get(vert_get_vias(grafo),i)) != NULL) { // que partirem dele 				
+			if(via_get_para(li_get_valor(list_get(vert_get_vias(grafo), i))) != grafo && li_get_valor(list_get(vert_get_vias(grafo), i)) != NULL && hash_get(caminhos, vert_id(via_get_para(li_get_valor(list_get(vert_get_vias(grafo), i))))) == NULL) { // que partirem dele e já não tiverem sido encontrados 				
 				p = via_get_cmp(li_get_valor(list_get(vert_get_vias(grafo),i)))/((cv <= 0)?(1):(cv*via_get_vm(li_get_valor(list_get(vert_get_vias(grafo),i)))));// + via_get_cmp(v);
 				u = NULL;
 				// pegamos o comprimento ou tempo dessa via 
 				// e procuramos se essa via leva a algum destino já armazenado
-				for(j = 0; j < list_get_len(fila); j++) 
+				for(j = 1; j < list_get_len(fila); j++) 
 					if(via_get_para(li_get_valor(list_get(vert_get_vias(grafo),i))) == via_get_para(via_get_para(li_get_valor(list_get(fila,j))))) {
 						u = li_get_valor(list_get(fila, j));
 						if(via_get_vm(u) > p + via_get_vm(v)) // removemos caso ele deva ser atualizado e reposicionado 														
@@ -93,6 +95,7 @@ void dijkstra (void * grafo, void * final, void * fila, void * caminhos, float c
 					list_set(fila, j + 1, u); // e entra imediatamente atrás dele																															
 				} 
 			}
+	//	printf("[%d]\t vendo %s (peso: %f)\n",list_get_len(fila),vert_id(grafo),via_get_vm(v));	
 		hash_set(caminhos,vert_id(grafo),v); // inserimos a origem e seus dados no mapeamento do algoritmo		
 		list_del(fila, 0);
 	}	
@@ -366,7 +369,7 @@ void vias_svg (void * img, void * arvore) {
 				svg_circle_close(img);
 				for(c = 0; c < list_get_len(vert_get_vias(q)); c++) 
 					if(via_get_de(li_get_valor(list_get(vert_get_vias(q), c))) == q)
-						svg_line(img, via_contorno(li_get_valor(list_get(vert_get_vias(q),c))), via_largura(li_get_valor(list_get(vert_get_vias(q),c))), vert_x(q), vert_y(q), vert_x(via_get_para(li_get_valor(list_get(vert_get_vias(q),c)))), vert_y(via_get_para(li_get_valor(list_get(vert_get_vias(q),c)))));
+						svg_line(img, via_contorno(li_get_valor(list_get(vert_get_vias(q),c))), via_largura(li_get_valor(list_get(vert_get_vias(q),c))), vert_x(q), vert_y(q), vert_x(via_get_para(li_get_valor(list_get(vert_get_vias(q),c)))), vert_y(via_get_para(li_get_valor(list_get(vert_get_vias(q),c)))),0);
 			}	
 		}
 		vias_svg(img,arv_get_dir(arvore));
@@ -791,7 +794,8 @@ void * cidade_caminho (void * cid, void * de, void * para, int tipo) {
 	}	
 	void * c = hash_get(cidade_get_vias(cid, tipo), vert_id(para));	
 	void * caminho = new_list(0);
-	while(c != NULL) {
+//	printf("caminho para %s %p:\t %p \n",vert_id(para),para,c);
+	while(via_get_de(c) != NULL) {
 		list_set(caminho, 0, via_get_para(c));
 		c = via_get_de(c);
 	}
@@ -879,4 +883,37 @@ void cidade_set_ponto (void * cid, void * p) {
 	if(p != NULL)
 		cidade_insort_ponto(l,p);
 	
+}
+
+void * cidade_get_ponto_vizinho (void * c, float x, float y, float w, float h) {
+	void * l = NULL;
+	float sw, sh;
+	while(list_get_len(l) <= 0) {
+		list_del_all(l);
+		sh = h;
+		sw = w;
+		w *= 2;
+		h *= 2;
+		l = cidade_get_pontos_em(c, x - sw, y - sh, w, h);		
+	}
+	float n, m = sw * w + sh * h;
+	void * d = NULL;
+	int i;
+	for(i = 0; i < list_get_len(l); i++) {
+		if(list_get_len(vert_get_vias(li_get_valor(list_get(l, i)))) < 1)
+			continue;
+		h = y - vert_y(li_get_valor(list_get(l, i)));
+		w = x - vert_x(li_get_valor(list_get(l, i)));
+		n = w * w + h * h;
+		if(n < m || (n == m && list_get_len(vert_get_vias(d)) < list_get_len(vert_get_vias(li_get_valor(list_get(l,i)))))) {
+			d = li_get_valor(list_get(l,i));
+			m = n;
+		}	
+	}		
+	list_del_all(l);
+	if(list_get_len(vert_get_vias(d)) <= 0) {
+		printf("Ponto %s (%f %f) possui somente %d conexões.\n",vert_id(d),vert_x(d),vert_y(d),list_get_len(vert_get_vias(d)));
+		return cidade_get_ponto_vizinho(c, x, y, w, h);
+	}	
+	return d;
 }

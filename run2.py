@@ -50,7 +50,8 @@ try:
 			
 		for qry in qrys:		
 			linha = f'{src}/{progr} -e {bed} -q {nomeGEO[0]}/{qry} -o {bsd} -f {geo} -v {nomeGEO[0]}-v.via'
-			print(c,'\t',geo,'\t',qry,file=sys.stderr)
+			t = time.time() - ti
+			print(int(t//3600),':',int(t%3600)//60,':',t%60,'\t',c,'\t',geo,qry,file=sys.stderr)
 			
 			s = os.system(linha)
 			print('\n',linha,'\nreturn',s)

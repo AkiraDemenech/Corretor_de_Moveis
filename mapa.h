@@ -18,6 +18,8 @@ void cidade_del_all (void * cid);
 int cidade_get_tamanho (void * cid);
 void cidade_set_tamanho (void * cid, int tamanho);
 
+void * cidade_get_ponto_vizinho (void * c, float x, float y, float w, float h);
+
 void * cidade_get_vias_em (void * pontos_em);
 void * cidade_get_pontos_em (void * cid, float x, float y, float w, float h);
 void * cidade_get_quadras_em (void *cid, float x, float y, float w, float h);
