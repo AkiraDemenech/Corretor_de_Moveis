@@ -45,6 +45,28 @@ void orient (char * cardcola, float xi, float yi, float xf, float yf) {
 
 }
 
+int lado (void * i, void * f) {	
+	int r = 1;
+	if(vert_x(via_get_de(i)) == vert_x(via_get_de(f))) {
+		if(vert_x(via_get_de(f)) == vert_x(via_get_para(f)))
+			return 0;
+		if(vert_y(via_get_de(i)) > vert_y(via_get_de(f)))
+			r = -1;
+		if(vert_x(via_get_de(i)) > vert_x(via_get_para(f)))
+			return -r;	
+		return r;
+	} 
+	if(vert_x(via_get_de(i)) > vert_x(via_get_de(f)))
+		r = -1;
+	float m = (vert_y(via_get_de(i)) - vert_y(via_get_de(f)))/(vert_x(via_get_de(i)) - vert_x(via_get_de(f)));	
+	float p = vert_y(via_get_de(f)) + ((vert_x(via_get_para(f)) - vert_x(via_get_de(f))) * m);	
+	if(p == vert_y(via_get_para(f)))
+		return 0;
+	if(p < vert_y(via_get_para(f)))
+		return -r;
+	return r;	
+}
+
 void op (FILE * svg, FILE * txt, void * cidade, void * origem, char * ocep, char oface, int onum, float ox, float oy, void * destino, char * dcep, char dface, int dnum, float dx, float dy, char * cor, int tipo) {
 	if(svg == NULL || txt == NULL)
 		return;
@@ -73,12 +95,22 @@ void op (FILE * svg, FILE * txt, void * cidade, void * origem, char * ocep, char
 		svg_path_point(svg, 'M', ox, oy); // */
 		void * a = NULL;
 		float t, d, s = 0;
-		int c;
+		int c, l;
 		for(c = 0, d = 0, t = 0; c < list_get_len(caminho); c++) {
 			if(compare(via_nome(a), via_nome(li_get_valor(list_get(caminho, c)))) != 0 && a != NULL) {
 		//		printf("\n%s\t(%f m %s)\n",via_nome(a),d,dir);
 				orient(dir, vert_x(via_get_de(li_get_valor(list_get(caminho, c)))), vert_y(via_get_de(li_get_valor(list_get(caminho, c)))), vert_x(via_get_para(li_get_valor(list_get(caminho, c)))), vert_y(via_get_para(li_get_valor(list_get(caminho, c)))));
-				fprintf(txt,"\tSiga %.1f metros em %s e vire em %s (sentido %s)\n",d,via_nome(a),via_nome(li_get_valor(list_get(caminho,c))),dir);				
+				fprintf(txt,"\tSiga %.1f metros em %s e ",d,via_nome(a));				
+				l = lado(a, li_get_valor(list_get(caminho, c)));
+				if(l == 0) 
+					fprintf(txt,"continue em frente");
+				else {
+					fprintf(txt, "vire à ");
+					if(l < 0)
+						fprintf(txt, "esquerda");
+					else fprintf(txt, "direita");	
+				}	
+				fprintf(txt," em %s (sentido %s)\n",via_nome(li_get_valor(list_get(caminho,c))),dir);
 				s += d;
 				d = 0;
 			}			
@@ -109,9 +141,14 @@ void op (FILE * svg, FILE * txt, void * cidade, void * origem, char * ocep, char
 		fprintf(txt, " em ");			
 		if(t >= 3600)
 			fprintf(txt, "%dh", ((int)t)/3600);
-		if(t >= 60)
-			fprintf(txt, "%02dmin", (((int)t)%3600)/60);	
-		fprintf(txt, "%02ds \n", ((int) t) % 60);	
+		if(t >= 60) {			
+			if(t >= 3600 && (((int)t/60)%60) < 10)
+				fprintf(txt,"0");
+			fprintf(txt, "%dmin", (((int)t)%3600)/60);	
+			if(((int)t)%60 < 10)
+				fprintf(txt,"0");
+		}	
+		fprintf(txt, "%ds \n", ((int) t) % 60);	
 
 		h = 0;
 		d = 3;
@@ -157,10 +194,11 @@ int rv (FILE * svg, FILE * txt, void * vis, void * arv, void * raiz, char * cor,
 			reduz -= fator;
 			if(reduz <= MIN) 
 				reduz = MIN;
-			else decremento_em = decremento_prox;	
+			decremento_em = decremento_prox;	
 			decremento_prox = 0;
-			fprintf(txt, "\n\tReduzindo a %f%%: \n", reduz * 100);
+			fprintf(txt, "\n\tReduzindo a %f%%:\t%d vértices (de origem ou destino) \n", reduz * 100, decremento_em);
 		}
+		
 		
 		for(c = 0; c < list_get_len(adj); c++) {
 			prox = via_get_para(li_get_valor(list_get(adj, c)));
@@ -172,8 +210,8 @@ int rv (FILE * svg, FILE * txt, void * vis, void * arv, void * raiz, char * cor,
 			list_add(fila, prox);	
 
 			via_set_vm(li_get_valor(list_get(adj,c)),reduz*via_get_vm(li_get_valor(list_get(adj,c))));
-			svg_line(svg,cor,"4px",vert_x(via_get_de(li_get_valor(list_get(adj,c)))),vert_y(via_get_de(li_get_valor(list_get(adj,c)))),vert_x(via_get_para(li_get_valor(list_get(adj,c)))),vert_y(via_get_para(li_get_valor(list_get(adj,c)))),0);
-			fprintf(txt,"\n\tDe:\t%s\t(%f %f)\n\tPara:\t%s\t(%f %f)\n\t%f m\t(%f m/s)\n\t %s %s\n",vert_id(via_get_de(li_get_valor(list_get(adj,c)))),vert_x(via_get_de(li_get_valor(list_get(adj,c)))),vert_y(via_get_de(li_get_valor(list_get(adj,c)))),vert_id(via_get_para(li_get_valor(list_get(adj,c)))),vert_x(via_get_para(li_get_valor(list_get(adj,c)))),vert_y(via_get_para(li_get_valor(list_get(adj,c)))),via_get_cmp(li_get_valor(list_get(adj,c))),via_get_vm(li_get_valor(list_get(adj,c))),via_esq(li_get_valor(list_get(adj,c))),via_dir(li_get_valor(list_get(adj,c))));
+			svg_line(svg,cor,"2px",vert_x(via_get_de(li_get_valor(list_get(adj,c)))),vert_y(via_get_de(li_get_valor(list_get(adj,c)))),vert_x(via_get_para(li_get_valor(list_get(adj,c)))),vert_y(via_get_para(li_get_valor(list_get(adj,c)))),0);
+			fprintf(txt,"\n\tDe:\t%s\t(%f %f)\n\tPara:\t%s\t(%f %f)\n\t%f m\t(%f m/s)\n\t %s %s\t%s\n",vert_id(via_get_de(li_get_valor(list_get(adj,c)))),vert_x(via_get_de(li_get_valor(list_get(adj,c)))),vert_y(via_get_de(li_get_valor(list_get(adj,c)))),vert_id(via_get_para(li_get_valor(list_get(adj,c)))),vert_x(via_get_para(li_get_valor(list_get(adj,c)))),vert_y(via_get_para(li_get_valor(list_get(adj,c)))),via_get_cmp(li_get_valor(list_get(adj,c))),via_get_vm(li_get_valor(list_get(adj,c))),via_esq(li_get_valor(list_get(adj,c))),via_dir(li_get_valor(list_get(adj,c))),via_nome(li_get_valor(list_get(adj,c))));
 			decremento_prox++;
 		}						
 		decremento_em--;
@@ -229,7 +267,7 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 	char pcor[2][CEP_TAM];
 	void *r;
 	void *m,*n;	
-	void *ov, *pv;
+	void *ov = NULL, *pv;
 	char ocep[CEP_TAM];		
 	char cep[CEP_TAM];
 	char com[com_tam];
@@ -251,19 +289,26 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 				cidade_set_vias_vm(cid, NULL);
 				cidade_set_vias_cmp(cid,NULL);
 				r = cidade_get_quadra_hash(cid, ocep);
-				if(r == NULL)
+				if(r == NULL) {
+					fprintf(txt_out, "Quadra %s não encontrada. \n", ocep);
 					printf("Quadra %s não encontrada.\n",ocep);
-				else {
+				} else {
 					ox = cep_get_x(quadra_get_x(r), quadra_get_w(r), oface[0], on);
 					oy = cep_get_y(quadra_get_y(r), quadra_get_h(r), oface[0], on);
 					fprintf(txt_out, "(%f %f) \n", ox, oy);
 					printf("\t(%f %f)\n",ox,oy);
 					ov = cidade_get_ponto_vizinho(cid, ox, oy, quadra_get_w(r), quadra_get_h(r));
-					if(ov == NULL)
+					if(ov == NULL) {
+						fprintf(txt_out,"Não foi encontrado ponto de origem próximo o suficiente.\n");
 						printf("Não foi encontrado ponto de origem próximo o suficiente.\n");
-					else {	
+					} else {	
 						printf("\t(%f %f)\t%s\n",vert_x(ov),vert_y(ov),vert_id(ov));
 						fprintf(txt_out, "(%f %f)\t%s\n", vert_x(ov), vert_y(ov), vert_id(ov));
+						svg_line(svg_out, "#AA0044", NULL, ox, oy, ox, -32, 0);
+						svg_text_open(svg_out, "#AA0044", 27, ox, -30);
+						if(svg_out != NULL)
+							fprintf(svg_out,"%s/%c/%d",quadra_get_cep(r),oface[0],on);
+						svg_text_close(svg_out);
 					}	
 				}	
 				qtd_o++;
@@ -285,9 +330,13 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 				fprintf(txt_out, " \n");
 				
 				r = cidade_get_quadra_hash(cid, cep);
-				if(r == NULL)
+				if(r == NULL) {
 					printf("Quadra %s não encontrada.\n", cep);
-				else {
+					fprintf(txt_out,"Quadra %s não encontrada.\n",cep);
+				} else if(ov == NULL)	{
+					printf("Não há ponto de início conhecido.\n");
+					fprintf(txt_out, "Não há ponto de origem conhecido.\n");
+				} else {
 					px = cep_get_x(quadra_get_x(r), quadra_get_w(r), pface[0], pn);
 					py = cep_get_y(quadra_get_y(r), quadra_get_h(r), pface[0], pn);
 					fprintf(txt_out, "(%f %f)\n", px, py);
@@ -312,7 +361,7 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 				fscanf(q, "%f %f %f %f %f", &u, &v, &t, &s, &f);
 				fprintf(txt_out, "\nrv\t%f %f %f %f %f\n", u, v, t, s, f);
 				printf("\n%u\trv\t%f %f %f %f %f\n", exec, u, v, t, s, f);
-				svg_rect_open(svg_out, com, NULL, "#AB37C8", "5px", u, v, t, s, 1, 10);
+				svg_rect_open(svg_out, com, NULL, "#AB37C8", "4px", u, v, t, s, 1, 10);
 				svg_rect_close(svg_out);
 				n = cidade_get_pontos_em(cid, u, v, t, s);
 				m = cidade_get_vias_em(n);
@@ -327,7 +376,7 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 				for(c = 0; c < list_get_len(n); c++) {
 					if(hash_get(b,vert_id(li_get_valor(list_get(n,c))))!=NULL)
 						continue;
-					d = rv(svg_out, txt_out, b, a, li_get_valor(list_get(n, c)), "hotpink", f); 
+					d = rv(svg_out, txt_out, b, a, li_get_valor(list_get(n, c)), "#65D948", f); 
 					fprintf(txt_out, "\n%d velocidades reduzidas. \nRaiz:\t%s\n", d, vert_id(li_get_valor(list_get(n, c))));
 					if(d > 0) {
 						if(cidade_get_vias_cmp(cid) != NULL)
@@ -360,7 +409,7 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 					cx2 = kosaraju(cidade_get_pontos(cid),u);
 					for(c = 0; c < list_get_len(cx2); c++) {
 						hex64(cep, c + 1);
-						fprintf(txt_out, "\n\t%s\tRegião %d\t[%d vértice", cep, c, list_get_len(li_get_valor(list_get(cx2, c))));
+						fprintf(txt_out, "\n\t%s\tRegião %d\t[%d vértice", (list_get_len(li_get_valor(list_get(cx2,c)))>1)?cep:NULL, c, list_get_len(li_get_valor(list_get(cx2, c))));
 						if(list_get_len(li_get_valor(list_get(cx2,c))) > 1) {
 							i++;
 							fprintf(txt_out, "s");
@@ -374,7 +423,7 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 					qtd_cx++;
 				} else { // catac
 					fscanf(q, "%f %f %f", &v, &t, &s);
-					svg_rect_open(svg_out, com, "#AB37C8", "#AA0044", NULL, u, v, t, s, 0.5, 0);
+					svg_rect_open(svg_out, com, "#AB37C8", "#AA0044", "5px", u, v, t, s, 0.5, 0);
 					svg_rect_close(svg_out);
 					fprintf(txt_out, "\ncatac\t%f %f %f %f\n", u, v, t, s);
 					printf("\n%u\tcatac\t%f %f %f %f\n", exec, u, v, t, s);

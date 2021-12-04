@@ -29,7 +29,7 @@ void dfs (void * grafo, void * pilha, void * visitados, float vmin) {
 		int c;
 		for(c = 0; c < list_get_len(vert_get_vias(grafo)); c++) {
 			if(via_get_vm(li_get_valor(list_get(vert_get_vias(grafo), c))) < vmin) {
-				via_estilo(li_get_valor(list_get(vert_get_vias(grafo),c)),"red","5px");
+				via_estilo(li_get_valor(list_get(vert_get_vias(grafo),c)),"red","6px");
 				continue;
 			}
 			if(via_get_para(li_get_valor(list_get(vert_get_vias(grafo), c))) != grafo)
