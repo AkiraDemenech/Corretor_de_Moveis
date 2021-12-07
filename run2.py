@@ -53,12 +53,12 @@ try:
 			t = time.time() - ti
 			print(int(t//3600),':',int(t%3600)//60,':',t%60,'\t',c,'\t',geo,qry,file=sys.stderr)
 			
-			s = os.system(linha)
-			print('\n',linha,'\nreturn',s)
+			s = os.system(linha + ' > ' + res + '/' + geo + '_' + qry + '_.txt')
+		#	print('\n',linha,'\nreturn',s)
 			e += s != 0
 			if s != 0:
 				if falhas == None:
-					falhas = open('falhas.txt','w')
+					falhas = open(res + '/__falhas__.txt', 'w')
 				print(linha,'\n\treturn',s,'\n',file=sys.stderr)	
 				print(linha.__repr__(),'\t',c,'\t','return',s,file=falhas)
 				falhou_em.append((linha,s))			
@@ -66,7 +66,13 @@ try:
 			
 except KeyboardInterrupt:
 	pass
-print(time.time() - ti,'para %d testes [' %c, str(e) * (e != len(falhou_em)),len(falhou_em),'falhas ]',file=sys.stderr)		
+t = time.time() - ti	
+print(t,'para %d testes [' %c, str(e) * (e != len(falhou_em)),len(falhou_em),'falhas ]',file=sys.stderr)		
+if t >= 3600:
+	print(int(t//3600),'h')
+if t >= 60:	
+	print(int((t%3600)//60),'min')	
+print(t%60,'s')	
 for f_e in falhou_em:	print(*f_e, file=sys.stderr)
 
 c = 0

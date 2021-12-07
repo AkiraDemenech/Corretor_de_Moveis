@@ -910,10 +910,6 @@ void * cidade_get_ponto_vizinho (void * c, float x, float y, float w, float h) {
 			m = n;
 		}	
 	}		
-	list_del_all(l);
-	if(list_get_len(vert_get_vias(d)) <= 0) {
-		printf("Ponto %s (%f %f) possui somente %d conexões.\n",vert_id(d),vert_x(d),vert_y(d),list_get_len(vert_get_vias(d)));
-		return cidade_get_ponto_vizinho(c, x, y, w, h);
-	}	
+	list_del_all(l);		
 	return d;
 }

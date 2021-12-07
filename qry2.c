@@ -17,6 +17,8 @@ void cx_svg (FILE * svg, void * compfortconex) {
 	char cor[HEX];
 	int c = list_get_len(compfortconex), i;
 	while(c > 0) {
+		c--;
+		
 		if(list_get_len(li_get_valor(list_get(compfortconex, c))) > 1)
 			hex64(cor, c);
 		else {	
@@ -27,7 +29,7 @@ void cx_svg (FILE * svg, void * compfortconex) {
 			cor[4] = '\0';
 		}	
 	
-		c--;
+		
 		for(i = 0; i < list_get_len(li_get_valor(list_get(compfortconex, c))); i++) 
 			svg_ellipse(svg,NULL,cor,NULL,NULL,vert_x(li_get_valor(list_get(li_get_valor(list_get(compfortconex,c)),i)))-5,vert_y(li_get_valor(list_get(li_get_valor(list_get(compfortconex,c)),i)))-5,16+(i%6),12+(c%4));		
 	}
@@ -379,10 +381,10 @@ void * cidade_qry (void * cid, char * qry, char * svg, char * txt) {
 					d = rv(svg_out, txt_out, b, a, li_get_valor(list_get(n, c)), "#65D948", f); 
 					fprintf(txt_out, "\n%d velocidades reduzidas. \nRaiz:\t%s\n", d, vert_id(li_get_valor(list_get(n, c))));
 					if(d > 0) {
-						if(cidade_get_vias_cmp(cid) != NULL)
+						if(cidade_get_vias_vm(cid) != NULL)
 							printf("invalidando caminhos mais rápidos.\n");
-						hash_del_all(cidade_get_vias_cmp(cid));	
-						cidade_set_vias_cmp(cid, NULL);
+						hash_del_all(cidade_get_vias_vm(cid));	
+						cidade_set_vias_vm(cid, NULL);
 					}
 					
 				}
